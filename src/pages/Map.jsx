@@ -20,6 +20,11 @@ export default function Map() {
   useEffect(() => {
     // Apply default icon once
     L.Marker.prototype.options.icon = DefaultIcon;
+    const handleKey = (e) => {
+      if (e.key === "ArrowLeft") navigate("/discover");
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
   const minSwipe = 50;
@@ -37,9 +42,8 @@ export default function Map() {
     const dx = endX.current - startX.current;
     const dy = endY.current - startY.current;
     const isHorizontal = Math.abs(dx) > Math.abs(dy);
-    if (isHorizontal && dx >= minSwipe) {
-      navigate("/discover");
-    }
+    // Left swipe to go back to Discover
+    if (isHorizontal && dx <= -minSwipe) navigate("/discover");
   };
 
   const center = [55.6761, 12.5683]; // Copenhagen as example
@@ -51,6 +55,24 @@ export default function Map() {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
+      {/* Back button overlay */}
+      <button
+        onClick={() => navigate("/discover")}
+        style={{
+          position: "fixed",
+          top: 12,
+          left: 12,
+          zIndex: 1000,
+          background: "#111827cc",
+          color: "#fff",
+          border: "1px solid #1f2937",
+          borderRadius: 8,
+          padding: "8px 12px",
+        }}
+        aria-label="Back to Discover"
+      >
+        ← Back
+      </button>
       <MapContainer
         center={center}
         zoom={13}

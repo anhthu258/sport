@@ -1,6 +1,7 @@
 // App.jsx
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Discover from "./pages/Korttest.jsx";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home.jsx";
+import Discover from "./pages/Discover.jsx";
 import Map from "./pages/Map.jsx";
 import Login from "./pages/Login.jsx";
 
@@ -8,13 +9,16 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Default to Map */}
-        <Route path="/" element={<Navigate to="/map" replace />} />
+        {/* No automatic redirects so you can navigate directly while testing */}
+        <Route path="/" element={<Home />} />
         <Route path="/discover" element={<Discover />} />
         <Route path="/map" element={<Map />} />
         <Route path="/login" element={<Login />} />
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/map" replace />} />
+        {/* Optional: simple 404 without redirect */}
+        <Route
+          path="*"
+          element={<div style={{ padding: 16 }}>Not found</div>}
+        />
       </Routes>
     </BrowserRouter>
   );
