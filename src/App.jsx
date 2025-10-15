@@ -8,13 +8,13 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Default to Discover */}
-        <Route path="/" element={<Navigate to="/discover" replace />} />
+        {/* Default to Map */}
+        <Route path="/" element={<Navigate to="/map" replace />} />
         <Route path="/discover" element={<Discover />} />
         <Route path="/map" element={<Map />} />
         <Route path="/login" element={<Login />} />
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/discover" replace />} />
+        <Route path="*" element={<Navigate to="/map" replace />} />
       </Routes>
     </BrowserRouter>
   );
