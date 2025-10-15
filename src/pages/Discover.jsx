@@ -1,78 +1,41 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Map from "./Map.jsx";
 
 export default function Discover() {
   const containerRef = useRef(null);
-  const startX = useRef(0);
-  const startY = useRef(0);
-  const lastX = useRef(0);
-  const [panelX, setPanelX] = useState(0); // 0 = cover map, -width = fully reveal map
-  const [isDragging, setIsDragging] = useState(false);
-  const [width, setWidth] = useState(0);
+  const panelRef = useRef(null);
+  const [panelX, setPanelX] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const drag = useRef({ startX: 0, panelAtStart: 0, id: null });
 
+  const width = () => containerRef.current?.clientWidth || window.innerWidth;
+  const clamp = (v) => Math.min(0, Math.max(-width(), v));
   const minSwipe = 50;
 
-  useEffect(() => {
-    const onResize = () =>
-      setWidth(containerRef.current?.clientWidth || window.innerWidth);
-    onResize();
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  useEffect(() => {
-    const handleKey = (e) => {
-      if (e.key === "ArrowRight") setPanelX(-width);
-      if (e.key === "ArrowLeft") setPanelX(0);
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [width]);
-
-  const clamp = (v) => Math.min(0, Math.max(-width, v));
-
-  const onTouchStart = (e) => {
-    const t = e.changedTouches[0];
-    startX.current = t.clientX;
-    startY.current = t.clientY;
-    lastX.current = panelX;
-    setIsDragging(true);
+  // Drag handle events (kept tiny and focused)
+  const onDown = (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    drag.current = { startX: e.clientX, panelAtStart: panelX, id: e.pointerId };
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+    setDragging(true);
   };
-  const onTouchMove = (e) => {
-    if (!isDragging) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - startX.current;
-    const dy = t.clientY - startY.current;
-    if (Math.abs(dx) > Math.abs(dy)) {
-      setPanelX(clamp(lastX.current + dx));
-    }
+  const onMove = (e) => {
+    if (!dragging) return;
+    if (e.pointerType === "mouse" && e.buttons === 0) return;
+    const dx = e.clientX - drag.current.startX;
+    setPanelX(clamp(drag.current.panelAtStart + dx));
   };
-  const onTouchEnd = (e) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    const t = e.changedTouches[0];
-    const dx = t.clientX - startX.current;
-    if (dx < -minSwipe) setPanelX(-width);
+  const onUp = (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - drag.current.startX;
+    if (dx < -minSwipe) setPanelX(-width());
     else if (dx > minSwipe) setPanelX(0);
-    else setPanelX(Math.abs(panelX) > width / 2 ? -width : 0);
+    else setPanelX(Math.abs(panelX) > width() / 2 ? -width() : 0);
+    setDragging(false);
   };
-
-  const onMouseDown = (e) => {
-    startX.current = e.clientX;
-    startY.current = e.clientY;
-    lastX.current = panelX;
-    setIsDragging(true);
-  };
-  const onMouseMove = (e) => {
-    if (!isDragging) return;
-    const dx = e.clientX - startX.current;
-    const dy = e.clientY - startY.current;
-    if (Math.abs(dx) > Math.abs(dy)) setPanelX(clamp(lastX.current + dx));
-  };
-  const onMouseUp = () => setIsDragging(false);
-  const onMouseLeave = () => setIsDragging(false);
-
-  const fullyRevealed = Math.abs(panelX + width) < 1; // panelX === -width
+  const onCancel = () => setDragging(false);
 
   return (
     <div
@@ -84,45 +47,14 @@ export default function Discover() {
         overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 0,
-          pointerEvents: panelX === 0 ? "none" : "auto",
-        }}
-      >
-        <Map />
+      {/* Map behind */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+        <Map embedded />
       </div>
 
-      {fullyRevealed && (
-        <button
-          onClick={() => setPanelX(0)}
-          style={{
-            position: "absolute",
-            top: 12,
-            left: 12,
-            zIndex: 2,
-            background: "#111827cc",
-            color: "#fff",
-            border: "1px solid #1f2937",
-            borderRadius: 8,
-            padding: "8px 12px",
-          }}
-          aria-label="Back to Discover"
-        >
-          ← Back
-        </button>
-      )}
-
+      {/* Foreground panel with YOUR content */}
       <div
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseLeave}
+        ref={panelRef}
         style={{
           position: "absolute",
           inset: 0,
@@ -132,13 +64,61 @@ export default function Discover() {
           background: "#0f172a",
           color: "#fff",
           transform: `translate3d(${panelX}px, 0, 0)`,
-          transition: isDragging ? "none" : "transform 220ms ease",
-          touchAction: "pan-y",
-          overscrollBehaviorX: "contain",
+          transition: dragging ? "none" : "transform 200ms ease",
         }}
       >
-        <div style={{ flex: 1, overflowY: "auto" }} />
+        {/*
+          Add Discover content inside the scroll area below.
+          Replace the sample cards with your own components.
+        */}
+        <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+          {/* SAMPLE CONTENT — replace freely */}
+          <div style={{ display: "grid", gap: 12 }}>
+            {[
+              "Basketball Court",
+              "Football Field",
+              "Tennis Courts",
+              "Running Track",
+            ].map((title, i) => (
+              <article
+                key={i}
+                style={{
+                  background: "#111827",
+                  border: "1px solid #1f2937",
+                  borderRadius: 12,
+                  padding: 16,
+                }}
+              >
+                <h2 style={{ margin: 0, fontSize: 16 }}>{title}</h2>
+                <p
+                  style={{ margin: "6px 0 0", color: "#9ca3af", fontSize: 13 }}
+                >
+                  Replace this sample with your own content.
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
       </div>
+
+      {/* Slim drag handle on the right edge */}
+      <div
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onCancel}
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          width: 28,
+          height: "100%",
+          zIndex: 2,
+          cursor: dragging ? "grabbing" : "ew-resize",
+          touchAction: "none",
+        }}
+        aria-label="Drag to reveal map"
+      />
     </div>
   );
 }
