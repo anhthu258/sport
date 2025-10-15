@@ -1,5 +1,5 @@
 // App.jsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router";
 import Home from "./pages/Home.jsx";
 import Discover from "./pages/Discover.jsx";
 import Map from "./pages/Map.jsx";
