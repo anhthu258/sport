@@ -1,18 +1,20 @@
 // App.jsx
-import { BrowserRouter, Routes, Route } from "react-router";
-import Discover from "./pages/Discover";
-import Map from "./pages/Map";
-import Login from "./pages/Login";
-import Hometest from "./pages/Hometest";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Discover from "./pages/Korttest.jsx";
+import Map from "./pages/Map.jsx";
+import Login from "./pages/Login.jsx";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Hometest />} />
-        <Route path="/Discover" element={<Discover />} />
-        <Route path="/Login" element={<Login />} />
-        <Route path="/Map" element={<Map />} />
+        {/* Default to Discover */}
+        <Route path="/" element={<Navigate to="/discover" replace />} />
+        <Route path="/discover" element={<Discover />} />
+        <Route path="/map" element={<Map />} />
+        <Route path="/login" element={<Login />} />
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/discover" replace />} />
       </Routes>
     </BrowserRouter>
   );
