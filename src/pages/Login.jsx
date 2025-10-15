@@ -1,8 +1,10 @@
+import LoginForm from '../components/LoginForm';
+
 export default function Login() {
-	return (
-		<div style={{ padding: 24 }}>
-			<h1>Login</h1>
-			<p>Placeholder login page.</p>
-		</div>
-	);
+    return (
+        <div className="login-container">
+            <h2>Login</h2>  
+            <LoginForm />
+        </div>
+    );
 }
