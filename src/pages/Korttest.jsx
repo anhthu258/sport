@@ -1,40 +1,102 @@
-import React from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import React, { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
-// Fix default marker icon issue with Webpack
-import iconUrl from "leaflet/dist/images/marker-icon.png";
-import iconShadow from "leaflet/dist/images/marker-shadow.png";
+// Mobile-first Discover page with swipe left -> navigate to /map
+export default function Korttest() {
+  const navigate = useNavigate();
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const touchEndX = useRef(0);
+  const touchEndY = useRef(0);
 
-let DefaultIcon = L.icon({
-  iconUrl,
-  shadowUrl: iconShadow,
-});
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "ArrowRight") navigate("/map");
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [navigate]);
 
-L.Marker.prototype.options.icon = DefaultIcon;
+  const minSwipeDistance = 50; // px
 
-const MapView = () => {
-  const position = [51.505, -0.09]; // London coordinates
+  const onTouchStart = (e) => {
+    const touch = e.changedTouches[0];
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+  };
+
+  const onTouchMove = (e) => {
+    const touch = e.changedTouches[0];
+    touchEndX.current = touch.clientX;
+    touchEndY.current = touch.clientY;
+  };
+
+  const onTouchEnd = () => {
+    const dx = touchEndX.current - touchStartX.current;
+    const dy = touchEndY.current - touchStartY.current;
+    const isHorizontal = Math.abs(dx) > Math.abs(dy);
+    if (isHorizontal && dx <= -minSwipeDistance) {
+      navigate("/map");
+    }
+  };
 
   return (
-    <MapContainer
-      center={position}
-      zoom={13}
-      style={{ height: "400px", width: "100%" }}
+    <div
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      style={{
+        minHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+        background: "#0f172a",
+        color: "#fff",
+      }}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <header style={{ padding: "16px 20px", borderBottom: "1px solid #1f2937" }}>
+        <h1 style={{ margin: 0, fontSize: 20 }}>Discover sports near you</h1>
+        <p style={{ margin: "4px 0 0", color: "#9ca3af", fontSize: 12 }}>
+          Swipe left to open the map
+        </p>
+      </header>
 
-      <Marker position={position}>
-        <Popup>
-          A pretty CSS3 popup. <br /> Easily customizable.
-        </Popup>
-      </Marker>
-    </MapContainer>
+      <main style={{ flex: 1, padding: 16 }}>
+        <div style={{ display: "grid", gap: 12 }}>
+          {["Basketball Court", "Football Field", "Tennis Courts", "Running Track"].map(
+            (title, idx) => (
+              <article
+                key={idx}
+                style={{
+                  background: "#111827",
+                  border: "1px solid #1f2937",
+                  borderRadius: 12,
+                  padding: 16,
+                }}
+              >
+                <h2 style={{ margin: 0, fontSize: 16 }}>{title}</h2>
+                <p style={{ margin: "6px 0 0", color: "#9ca3af", fontSize: 13 }}>
+                  Popular spot nearby. Tap to learn more. Swipe left to see all on the map.
+                </p>
+              </article>
+            )
+          )}
+        </div>
+      </main>
+
+      <footer
+        style={{
+          padding: 12,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          color: "#9ca3af",
+          borderTop: "1px solid #1f2937",
+        }}
+      >
+        <span>Swipe to map</span>
+        <span aria-hidden>⟶</span>
+      </footer>
+    </div>
   );
-};
-
-export default MapView;
+}

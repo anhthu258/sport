@@ -14,3 +14,26 @@ The React Compiler is currently not compatible with SWC. See [this issue](https:
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## App navigation (mobile)
+
+- The default route redirects to `/discover` (the Discover page).
+- On the Discover page, swipe left to navigate to `/map`.
+- The Map page is built with Leaflet (via `react-leaflet`).
+
+## Run locally
+
+1. Install dependencies
+
+   - Node.js 18+ recommended
+   - Install packages: `npm install`
+
+2. Start the dev server: `npm run dev`
+
+If PowerShell blocks npm scripts (ExecutionPolicy), temporarily allow scripts for the current session only:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+Then re-run `npm run dev`.
