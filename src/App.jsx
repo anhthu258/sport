@@ -14,8 +14,11 @@ export default function App() {
         <Route path="/discover" element={<Discover />} />
         <Route path="/map" element={<Map />} />
         <Route path="/login" element={<Login />} />
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/map" replace />} />
+        {/* Optional: simple 404 without redirect */}
+        <Route
+          path="*"
+          element={<div style={{ padding: 16 }}>Not found</div>}
+        />
       </Routes>
     </BrowserRouter>
   );
