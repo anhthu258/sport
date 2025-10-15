@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 // Mobile-first Discover page with swipe left -> navigate to /map
 export default function Korttest() {
