@@ -1,19 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import Map from "./Map.jsx";
 
-// Discover page with the map visually behind a draggable, scrollable overlay panel.
 export default function Discover() {
   const containerRef = useRef(null);
   const startX = useRef(0);
   const startY = useRef(0);
   const lastX = useRef(0);
-  const [panelX, setPanelX] = useState(0); // 0 = fully covering map, negative = revealing map to the right
+  const [panelX, setPanelX] = useState(0); // 0 = cover map, -width = fully reveal map
   const [isDragging, setIsDragging] = useState(false);
   const [width, setWidth] = useState(0);
 
-  const maxRevealRatio = 0.6; // reveal up to 60% of the screen width
-  const maxRevealPx = Math.round(width * maxRevealRatio);
-  const minSwipe = 50; // px threshold for snap
+  const minSwipe = 50;
 
   useEffect(() => {
     const onResize = () =>
@@ -25,15 +22,14 @@ export default function Discover() {
 
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.key === "ArrowRight") {
-        setPanelX(-maxRevealPx);
-      } else if (e.key === "ArrowLeft") {
-        setPanelX(0);
-      }
+      if (e.key === "ArrowRight") setPanelX(-width);
+      if (e.key === "ArrowLeft") setPanelX(0);
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [maxRevealPx]);
+  }, [width]);
+
+  const clamp = (v) => Math.min(0, Math.max(-width, v));
 
   const onTouchStart = (e) => {
     const t = e.changedTouches[0];
@@ -42,31 +38,23 @@ export default function Discover() {
     lastX.current = panelX;
     setIsDragging(true);
   };
-
   const onTouchMove = (e) => {
     if (!isDragging) return;
     const t = e.changedTouches[0];
     const dx = t.clientX - startX.current;
     const dy = t.clientY - startY.current;
     if (Math.abs(dx) > Math.abs(dy)) {
-      e.preventDefault();
-      const next = Math.min(0, Math.max(-maxRevealPx, lastX.current + dx));
-      setPanelX(next);
+      setPanelX(clamp(lastX.current + dx));
     }
   };
-
   const onTouchEnd = (e) => {
     if (!isDragging) return;
     setIsDragging(false);
     const t = e.changedTouches[0];
     const dx = t.clientX - startX.current;
-    if (dx < -minSwipe) {
-      setPanelX(-maxRevealPx);
-    } else if (dx > minSwipe) {
-      setPanelX(0);
-    } else {
-      setPanelX(Math.abs(panelX) > maxRevealPx / 2 ? -maxRevealPx : 0);
-    }
+    if (dx < -minSwipe) setPanelX(-width);
+    else if (dx > minSwipe) setPanelX(0);
+    else setPanelX(Math.abs(panelX) > width / 2 ? -width : 0);
   };
 
   const onMouseDown = (e) => {
@@ -79,13 +67,12 @@ export default function Discover() {
     if (!isDragging) return;
     const dx = e.clientX - startX.current;
     const dy = e.clientY - startY.current;
-    if (Math.abs(dx) > Math.abs(dy)) {
-      const next = Math.min(0, Math.max(-maxRevealPx, lastX.current + dx));
-      setPanelX(next);
-    }
+    if (Math.abs(dx) > Math.abs(dy)) setPanelX(clamp(lastX.current + dx));
   };
   const onMouseUp = () => setIsDragging(false);
   const onMouseLeave = () => setIsDragging(false);
+
+  const fullyRevealed = Math.abs(panelX + width) < 1; // panelX === -width
 
   return (
     <div
@@ -97,7 +84,6 @@ export default function Discover() {
         overflow: "hidden",
       }}
     >
-      {/* Map layer (behind) */}
       <div
         style={{
           position: "absolute",
@@ -109,7 +95,26 @@ export default function Discover() {
         <Map />
       </div>
 
-      {/* Foreground discover panel */}
+      {fullyRevealed && (
+        <button
+          onClick={() => setPanelX(0)}
+          style={{
+            position: "absolute",
+            top: 12,
+            left: 12,
+            zIndex: 2,
+            background: "#111827cc",
+            color: "#fff",
+            border: "1px solid #1f2937",
+            borderRadius: 8,
+            padding: "8px 12px",
+          }}
+          aria-label="Back to Discover"
+        >
+          ← Back
+        </button>
+      )}
+
       <div
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
@@ -128,44 +133,11 @@ export default function Discover() {
           color: "#fff",
           transform: `translate3d(${panelX}px, 0, 0)`,
           transition: isDragging ? "none" : "transform 220ms ease",
-          boxShadow: panelX === 0 ? "none" : "8px 0 24px rgba(0,0,0,0.35)",
-          borderRight: panelX === 0 ? "none" : "1px solid #1f2937",
           touchAction: "pan-y",
+          overscrollBehaviorX: "contain",
         }}
       >
-        <header
-          style={{ padding: "16px 20px", borderBottom: "1px solid #1f2937" }}
-        >
-          <h1 style={{ margin: 0, fontSize: 20 }}>Discover</h1>
-          <p style={{ margin: "4px 0 0", color: "#9ca3af", fontSize: 12 }}>
-            Drag left to reveal the map (or press →). Drag right to close (or
-            press ←).
-          </p>
-        </header>
-
-        <main style={{ padding: 16, overflowY: "auto" }}>
-          <div style={{ display: "grid", gap: 12 }}>
-            {Array.from({ length: 24 }).map((_, i) => (
-              <article
-                key={i}
-                style={{
-                  background: "#111827",
-                  border: "1px solid #1f2937",
-                  borderRadius: 12,
-                  padding: 16,
-                }}
-              >
-                <h2 style={{ margin: 0, fontSize: 16 }}>Spot #{i + 1}</h2>
-                <p
-                  style={{ margin: "6px 0 0", color: "#9ca3af", fontSize: 13 }}
-                >
-                  Scroll to browse. Drag left to peek at the map behind.
-                </p>
-              </article>
-            ))}
-          </div>
-          <div style={{ height: 24 }} />
-        </main>
+        <div style={{ flex: 1, overflowY: "auto" }} />
       </div>
     </div>
   );
