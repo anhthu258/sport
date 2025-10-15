@@ -14,7 +14,11 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "react-leaflet": "^5.0.0"
+=======
+    "react-router": "^7.9.4"
+>>>>>>> Stashed changes
 =======
     "react-router": "^7.9.4"
 >>>>>>> Stashed changes
