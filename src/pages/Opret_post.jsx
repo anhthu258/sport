@@ -1,6 +1,10 @@
 //opsæt formular
 import { useState } from "react"
+import { serverTimestamp } from "firebase/firestore";
 //import firebase elementer der skal bruges
+import { db } from "../assets/firebase";
+import { collection, addDoc } from "firebase/firestore"; //importerer collection fra firebase, og evnen til at tilføje til documenter
+//altså i dette tilfælde, til posts
 
 // import firebase fra hotspot
 
@@ -13,16 +17,32 @@ export default function OpretPost(){
     //backend af formular kommet her
 
     //async function "handleSubmit", der tjekker forskellige parametrer
+   
     async function handleSubmit(e) {
-  e.preventDefault(); // forhindrer side reload
 
-  if (!beskrivelse || !sport) {
+  e.preventDefault(); // forhindrer side reload 
+    
+    if (!beskrivelse || !sport) { //Hvis der ikke er beskrivelse eller sport, så skriv det lige ind
     setMessage("Udfyld venligst alle felter");
     return;
   }
 
-  // Her kommer Firebase-kaldet senere
+  console.log("Forsøger at oprette opslag:", { beskrivelse, sport, location });
+
+await addDoc(collection(db, "posts"), { //venter på at sende
+  beskrivelse,
+  sport,
+  hotspotId: location,
+  timestamp: serverTimestamp()
+});
+
+    setMessage("Opslag oprettet!");
+    setBeskrivelse("");
+    setSport("");
+    setLocation("");
 }
+ 
+
 
 
     return(

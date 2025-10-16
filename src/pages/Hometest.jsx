@@ -9,6 +9,8 @@ export default function Hometest(){
           <li><Link to="/map">Map</Link></li>
           <li><Link to="/login">Login</Link></li>
           <li><Link to="/discover">Discover</Link></li>
+          <li><Link to="/opretpost">Opret Post</Link></li>
+          
         </ul>
       </nav>
     </div>
