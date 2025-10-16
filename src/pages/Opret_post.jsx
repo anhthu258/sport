@@ -29,14 +29,15 @@ export default function OpretPost(){
 
   console.log("Forsøger at oprette opslag:", { beskrivelse, sport, location });
 
-await addDoc(collection(db, "posts"), { //venter på at sende
-  beskrivelse,
-  sport,
-  hotspotId: location,
-  timestamp: serverTimestamp()
+await addDoc(collection(db, "posts"), { //sender til "db"=firestore, og direkte ind i posts, men først når den har
+  creatorId: "BrugerID",//alle de her ting ;)
+  hotspotId: location, //location skal bestemmes ud fra hotspottet man har valgt
+  beskrivelse, 
+  sport, //skal ændres ud fra også en select few sportgrene
+  timestamp: serverTimestamp() 
 });
 
-    setMessage("Opslag oprettet!");
+    setMessage("Opslag oprettet!"); //Tømmer formularen
     setBeskrivelse("");
     setSport("");
     setLocation("");
