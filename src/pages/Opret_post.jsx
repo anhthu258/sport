@@ -1,76 +1,185 @@
-//opsæt formular
-import { useState } from "react";
+// Opret Post komponent - formular til at oprette nye sportsopslag
+import { useEffect, useState } from "react";
+import "./Opret_post.css";
 import { serverTimestamp } from "firebase/firestore";
-//import firebase elementer der skal bruges
 import { db } from "../assets/firebase";
-import { collection, addDoc } from "firebase/firestore"; //importerer collection fra firebase, og evnen til at tilføje til documenter
-//altså i dette tilfælde, til posts
-
-// import firebase fra hotspot
+import { collection, addDoc, getDocs } from "firebase/firestore";
 
 export default function OpretPost() {
-  const [beskrivelse, setBeskrivelse] = useState(""); //Gemmer beskrivelsen, som brugeren skriver
-  const [sport, setSport] = useState(""); //gemmer sporten, som brugeren vælger, afhænger af hvad, der er muligt for hotspottet
-  const [message, setMessage] = useState(""); // Viser beskeder til brugeren
-  const [location, setLocation] = useState(""); //skal komme fra en bestemt liste man kan vælge imellem, eller fra hotspot_data
+  // State for formularens input felter
+  const [title, setTitle] = useState(""); // Postens titel
+  const [sport, setSport] = useState(""); // Valgt sportsgren (ID fra Firestore)
+  const [location, setLocation] = useState(""); // Valgt lokation (ID fra Firestore)
+  const [time, setTime] = useState(""); // Tidspunkt for aktiviteten
+  const [details, setDetails] = useState(""); // Beskrivelse
+  const [message, setMessage] = useState(""); // Beskeder til brugeren (poset eller ej)
 
-  //backend af formular kommet her
+  // State for dropdown valgmuligheder hentet fra Firestore
+  const [sportsOptions, setSportsOptions] = useState([]); // Liste af tilgængelige sportsgrene
+  const [locationOptions, setLocationOptions] = useState([]); // Liste af tilgængelige lokationer
 
-  //async function "handleSubmit", der tjekker forskellige parametrer
+  // Hent sportsgrene og lokationer fra Firestore når komponenten loader
+  useEffect(() => {
+    async function fetchOptions() {
+      try {
+        // Hent alle sportsgrene fra "sports" collection
+        const sportsSnapshot = await getDocs(collection(db, "sports"));
+        setSportsOptions(
+          sportsSnapshot.docs.map((doc) => ({
+            id: doc.id, // Dokument ID
+            ...(doc.data() || {}), // Alle felter fra dokumentet (name, title, etc.)
+          }))
+        );
 
+        // Hent alle lokationer fra "hotspots" collection
+        const locationsSnapshot = await getDocs(collection(db, "hotspots"));
+        setLocationOptions(
+          locationsSnapshot.docs.map((doc) => ({
+            id: doc.id, // Dokument ID
+            ...(doc.data() || {}), // Alle felter fra dokumentet (name, address, etc.)
+          }))
+        );
+      } catch (err) {
+        // Log fejl hvis data ikke kan hentes
+        console.error("Kunne ikke hente options", err);
+      }
+    }
+
+    // Kald funktionen når komponenten mountes
+    fetchOptions();
+  }, []); // Tom dependency array = kør kun ved første load
+
+  // Håndterer når brugeren indsender formularen
   async function handleSubmit(e) {
-    e.preventDefault(); // forhindrer side reload
+    e.preventDefault(); // Forhindrer at siden reloader
 
-    if (!beskrivelse || !sport) {
-      //Hvis der ikke er beskrivelse eller sport, så skriv det lige ind
-      setMessage("Udfyld venligst alle felter");
+    // Valider at påkrævede felter er udfyldt
+    if (!title || !sport || !location) {
+      setMessage("Udfyld venligst titel, sportsgren og lokation");
       return;
     }
 
+    // Log data der sendes til Firestore (til debugging)
     console.log("Forsøger at oprette opslag:", {
-      beskrivelse,
+      title,
       sport,
       location,
+      time,
+      details,
     });
 
+    // Gem opslaget i Firestore "posts" collection
     await addDoc(collection(db, "posts"), {
-      //sender til "db"=firestore, og direkte ind i posts, men først når den har
-      creatorId: "BrugerID", //alle de her ting ;)
-      hotspotId: location, //location skal bestemmes ud fra hotspottet man har valgt
-      beskrivelse,
-      sport, //skal ændres ud fra også en select few sportgrene
-      timestamp: serverTimestamp(),
+      creatorId: "BrugerID", // TODO: Erstat med rigtig bruger ID
+      hotspotId: location, // Reference til valgt lokation
+      title, // Postens titel
+      details, // Beskrivelse
+      time, // Tidspunkt for aktiviteten
+      sport, // Reference til valgt sportsgren
+      timestamp: serverTimestamp(), // Automatisk tidsstempel fra Firestore
     });
 
-    setMessage("Opslag oprettet!"); //Tømmer formularen
-    setBeskrivelse("");
+    // Vis succesbesked og ryd formularen
+    setMessage("Opslag oprettet!");
+    setTitle("");
     setSport("");
     setLocation("");
+    setTime("");
+    setDetails("");
   }
 
+  // Render formularen med alle input felter
   return (
-    <div className="OpretPost">
-      <form onSubmit={handleSubmit}>
-        <label>Lokation</label>
-        <input
-          value={location} //ændres til dropdown menu senere, for nu bare tekst
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="Vælg lokation"
-        />
-        <label>Beskrivelse</label>
-        <input
-          value={beskrivelse}
-          onChange={(e) => setBeskrivelse(e.target.value)}
-          placeholder="Skriv en kort titel"
-        />
-        <label>Sport</label>
-        <input
-          value={sport} //I et andet dokument skal titel = sport
-          onChange={(e) => setSport(e.target.value)} //sætter sporten til hvad man har valgt, det her skal ændres til "sport tags"
-          placeholder="Sport fx basketball"
-        />
-        <button type="submit">Opret opslag</button>
-        {message && <p>{message}</p>}
+    <div className="opret-post-page">
+      {/* Header sektion med titel */}
+      <div className="opret-hero">
+        <h1>Opret Post</h1>
+      </div>
+
+      {/* Hovedformular */}
+      <form className="opret-form" onSubmit={handleSubmit}>
+        {/* Titel input felt */}
+        <div className="form-group">
+          <label className="form-label">Titel</label>
+          <input
+            className="input"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Skriv en titel"
+          />
+        </div>
+
+        {/* Sportsgren dropdown - hentet fra Firestore */}
+        <div className="form-group">
+          <label className="form-label">Sportsgren</label>
+          <select
+            className="select"
+            value={sport}
+            onChange={(e) => setSport(e.target.value)}
+          >
+            <option value="">Vælg en sportsgren</option>
+            {/* Vis alle tilgængelige sportsgrene fra Firestore */}
+            {sportsOptions.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name || s.title || s.id}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Lokation og tidspunkt i samme række */}
+        <div className="form-row">
+          {/* Lokation dropdown - hentet fra Firestore */}
+          <div className="form-group">
+            <label className="form-label">Lokation</label>
+            <select
+              className="select"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            >
+              <option value="">Vælg en lokation</option>
+              {/* Vis alle tilgængelige lokationer fra Firestore */}
+              {locationOptions.map((loc) => (
+                <option key={loc.id} value={loc.id}>
+                  {loc.name || loc.title || loc.id}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tidspunkt input felt */}
+          <div className="form-group time">
+            <label className="form-label">Tidspunkt</label>
+            <input
+              className="input"
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Detaljer textarea */}
+        <div className="form-group">
+          <label className="form-label">Detaljer</label>
+          <textarea
+            className="textarea"
+            rows={6}
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
+            placeholder="Skriv her..."
+          />
+        </div>
+
+        {/* Submit knap */}
+        <div className="actions">
+          <button className="submit-btn" type="submit">
+            Opret
+          </button>
+        </div>
+
+        {/* Vis besked hvis der er en (succes eller fejl) */}
+        {message && <p className="message">{message}</p>}
       </form>
     </div>
   );

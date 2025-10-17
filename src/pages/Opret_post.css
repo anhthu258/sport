@@ -1,0 +1,105 @@
+/* Opret Post side - dedikeret styling */
+
+.opret-post-page {
+  min-height: 100dvh;
+  background: #0e0e10 url("/img/dark-concret.png") center/cover repeat;
+  color: #fff;
+}
+
+.opret-hero {
+  background: url("/img/white-concret.png") top center/cover no-repeat;
+  padding: 48px 20px 24px;
+}
+
+.opret-hero h1 {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+.opret-form {
+  padding: 20px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  border: none;
+  background: #dddddd;
+  color: #111;
+  border-radius: 6px;
+  padding: 14px 16px;
+  font-size: 16px;
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.submit-btn {
+  appearance: none;
+  border: none;
+  background: #ffffff;
+  color: #111;
+  padding: 12px 20px;
+  font-weight: 700;
+  border-radius: 6px;
+  position: relative;
+}
+
+.submit-btn::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: -6px;
+  bottom: -6px;
+  height: 6px;
+  background: #ff5a1f;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.message {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #a3e635;
+}
+
+@media (max-width: 420px) {
+  .opret-hero h1 {
+    font-size: 34px;
+  }
+  .form-row {
+    flex-direction: column;
+  }
+}
