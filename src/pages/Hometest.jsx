@@ -15,6 +15,10 @@ export default function Hometest() {
           <li>
             <Link to="/discover">Discover</Link>
           </li>
+
+          <li>
+            <Link to="/opretpost">Opret Post</Link>
+          </li>
         </ul>
       </nav>
     </div>
