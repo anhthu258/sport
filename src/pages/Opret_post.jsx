@@ -159,7 +159,7 @@ export default function OpretPost() {
           </div>
         </div>
 
-        {/* Detaljer textarea */}
+        {/* Skriv her */}
         <div className="form-group">
           <label className="form-label">Detaljer</label>
           <textarea
@@ -171,7 +171,7 @@ export default function OpretPost() {
           />
         </div>
 
-        {/* Submit knap */}
+        {/* Send knap */}
         <div className="actions">
           <button className="submit-btn" type="submit">
             Opret
