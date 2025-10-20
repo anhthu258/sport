@@ -7,7 +7,7 @@ export default function Hometest() {
       <nav>
         <ul>
           <li>
-            <Link to="/map">Map</Link>
+            <a href="/MapAnker.html">Map</a>
           </li>
           <li>
             <Link to="/login">Login</Link>
@@ -15,7 +15,6 @@ export default function Hometest() {
           <li>
             <Link to="/discover">Discover</Link>
           </li>
-
           <li>
             <Link to="/opretpost">Opret Post</Link>
           </li>
