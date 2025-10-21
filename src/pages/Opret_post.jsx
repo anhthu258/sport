@@ -165,7 +165,7 @@ export default function OpretPost() {
           <label className="form-label">Detaljer</label>
           <textarea
             className="textarea"
-            rows={4}
+            rows={6}
             value={details}
             onChange={(e) => setDetails(e.target.value)}
             placeholder="Skriv her..."

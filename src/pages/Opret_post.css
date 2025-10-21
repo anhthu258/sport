@@ -13,7 +13,7 @@
 /* Header sektion med white-concret der går over sort */
 .opret-hero {
   background: url("/img/white-concret.png") top center/cover no-repeat; /* Lys beton tekstur i toppen */
-  padding: 120px 60px 24px; /* Mere padding øverst for at flytte titlen ned */
+  padding: 100px 60px 24px; /* Mere padding øverst for at flytte titlen ned */
   position: relative;
   height: 30vh; /* Øverste sektion fylder 30% af skærmhøjden */
   display: flex;
@@ -37,7 +37,7 @@
 .opret-form {
   padding: 24px; /* Plads omkring formular */
   max-width: 320px; /* Endnu mindre bredde for mere mellemrum ved siderne */
-  margin: -30px auto; /* Mere plads over og under formularen */
+  margin: -40px auto; /* Mere plads over og under formularen */
   position: relative;
   z-index: 2;
 }
@@ -114,7 +114,7 @@
 .actions {
   display: flex;
   justify-content: flex-end; /* Knap til højre */
-  margin-top: 8px; /* Afstand fra form felter */
+  margin-top: 24px; /* Mere afstand fra form felter */
 }
 
 /* Submit knap styling */
