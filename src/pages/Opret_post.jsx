@@ -94,6 +94,7 @@ export default function OpretPost() {
       {/* Header sektion med titel */}
       <div className="opret-hero">
         <h1>Opret Post</h1>
+        <div className="crown-doodle"></div>
       </div>
 
       {/* Hovedformular */}
@@ -109,39 +110,39 @@ export default function OpretPost() {
           />
         </div>
 
-        {/* Sportsgren dropdown - hentet fra Firestore */}
+        {/* Lokation dropdown - hentet fra Firestore */}
         <div className="form-group">
-          <label className="form-label">Sportsgren</label>
+          <label className="form-label">Lokation</label>
           <select
             className="select"
-            value={sport}
-            onChange={(e) => setSport(e.target.value)}
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
           >
-            <option value="">Vælg en sportsgren</option>
-            {/* Vis alle tilgængelige sportsgrene fra Firestore */}
-            {sportsOptions.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name || s.title || s.id}
+            <option value="">Vælg en lokation</option>
+            {/* Vis alle tilgængelige lokationer fra Firestore */}
+            {locationOptions.map((loc) => (
+              <option key={loc.id} value={loc.id}>
+                {loc.name || loc.title || loc.id}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Lokation og tidspunkt i samme række */}
+        {/* Sportsgren og tidspunkt i samme række */}
         <div className="form-row">
-          {/* Lokation dropdown - hentet fra Firestore */}
+          {/* Sportsgren dropdown - hentet fra Firestore */}
           <div className="form-group">
-            <label className="form-label">Lokation</label>
+            <label className="form-label">Sportsgren</label>
             <select
               className="select"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              value={sport}
+              onChange={(e) => setSport(e.target.value)}
             >
-              <option value="">Vælg en lokation</option>
-              {/* Vis alle tilgængelige lokationer fra Firestore */}
-              {locationOptions.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {loc.name || loc.title || loc.id}
+              <option value="">Vælg en sportsgren</option>
+              {/* Vis alle tilgængelige sportsgrene fra Firestore */}
+              {sportsOptions.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name || s.title || s.id}
                 </option>
               ))}
             </select>

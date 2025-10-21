@@ -6,30 +6,112 @@
 .opret-post-page {
   min-height: 100dvh; /* Fylder hele skærmhøjden */
   background: #0e0e10 url("/img/dark-concret.png") center/cover repeat; /* Mørk baggrund med beton tekstur */
-  color: #fff; 
+  color: #000;
+  position: relative;
 }
 
-/* Header sektion med titel */
+/* Header sektion med torn paper effect */
 .opret-hero {
-  background: url("/img/white-concret.png") top center/cover no-repeat; /* Lys beton tekstur i toppen */
+  background: #e8e8e8 url("/img/white-concret.png") top center/cover no-repeat; /* Lys beton tekstur */
   padding: 48px 20px 24px; /* Plads omkring indholdet */
+  position: relative;
+  margin-bottom: 20px;
+}
+
+/* Torn paper effect */
+.opret-hero::after {
+  content: "";
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: #0e0e10 url("/img/dark-concret.png") center/cover repeat;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 60%, 5% 50%, 0 40%, 0 0);
 }
 
 /* Hovedtitel styling */
 .opret-hero h1 {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace; 
-  font-weight: 800; 
-  font-size: 40px; 
-  line-height: 1.1; 
-  color: #ffffff; 
+    "Liberation Mono", "Courier New", monospace;
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1.1;
+  color: #000;
+  text-align: center;
+  position: relative;
+}
+
+/* Neon yellow doodles */
+.opret-hero::before {
+  content: "✉";
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24px;
+  color: #ffff00;
+  text-shadow: 0 0 10px #ffff00;
+}
+
+.opret-hero .crown-doodle {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: 3px solid #ffff00;
+  border-radius: 50% 50% 0 0;
+  box-shadow: 0 0 10px #ffff00;
+}
+
+.opret-hero .crown-doodle::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 12px solid #ffff00;
 }
 
 /* Formular container */
 .opret-form {
   padding: 20px; /* Plads omkring formular */
-  max-width: 560px; 
+  max-width: 560px;
   margin: 0 auto; /* Centrer formular på siden */
+  position: relative;
+}
+
+/* Neon yellow S doodle */
+.opret-form::before {
+  content: "S";
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  font-size: 48px;
+  font-weight: 900;
+  color: #ffff00;
+  text-shadow: 0 0 15px #ffff00;
+  z-index: 1;
+}
+
+/* Neon yellow squiggly doodle */
+.opret-form::after {
+  content: "~";
+  position: absolute;
+  bottom: 40px;
+  right: 40px;
+  font-size: 36px;
+  color: #ffff00;
+  text-shadow: 0 0 15px #ffff00;
+  transform: rotate(45deg);
+  z-index: 1;
 }
 
 /* ========================================
@@ -43,7 +125,7 @@
 /* Række layout for side-ved-side felter */
 .form-row {
   display: flex; /* Flexbox for side-ved-side layout */
-  gap: 16px; 
+  gap: 16px;
 }
 
 /* Form grupper i række fylder lige meget plads */
@@ -59,7 +141,7 @@
 .form-label {
   display: block; /* Labels på egen linje */
   margin-bottom: 8px; /* Afstand til input felt */
-  font-weight: 700; 
+  font-weight: 700;
   letter-spacing: 0.5px; /* Lidt ekstra afstand mellem bogstaver */
 }
 
@@ -68,12 +150,12 @@
 .select,
 .textarea {
   width: 100%; /* Fylder hele bredden */
-  border: none; 
-  background: #dddddd; 
-  color: #111; 
-  border-radius: 6px; 
+  border: none;
+  background: #dddddd;
+  color: #111;
+  border-radius: 6px;
   padding: 14px 16px; /* Plads inde i feltet */
-  font-size: 16px; 
+  font-size: 16px;
 }
 
 /* Textarea kan kun ændre højde, ikke bredde */
@@ -87,7 +169,7 @@
 
 /* Container for knapper */
 .actions {
-  display: flex; 
+  display: flex;
   justify-content: flex-end; /* Knap til højre */
   margin-top: 8px; /* Afstand fra form felter */
 }
@@ -95,26 +177,21 @@
 /* Submit knap styling */
 .submit-btn {
   appearance: none; /* Fjerner standard knap styling */
-  border: none; 
-  background: #ffffff; 
-  color: #111; 
+  border: 3px solid #ff5a1f; /* Orange border */
+  background: #ffffff;
+  color: #111;
   padding: 12px 20px; /* Plads omkring tekst */
-  font-weight: 700; 
-  border-radius: 6px; 
-  position: relative; 
+  font-weight: 700;
+  border-radius: 6px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* Orange accent under knappen */
-.submit-btn::after {
-  content: ""; /* Tomt pseudo-element */
-  position: absolute; 
-  left: 6px; 
-  right: -6px; 
-  bottom: -6px; 
-  height: 6px; 
-  background: #ff5a1f; 
-  border-bottom-left-radius: 6px; 
-  border-bottom-right-radius: 6px; 
+/* Hover effect */
+.submit-btn:hover {
+  background: #ff5a1f;
+  color: #ffffff;
 }
 
 /* ========================================
@@ -124,7 +201,7 @@
 /* Beskeder til brugeren (succes/fejl) */
 .message {
   margin-top: 12px; /* Afstand fra formular */
-  font-size: 14px; 
+  font-size: 14px;
   color: #a3e635; /* Grøn farve for positive beskeder */
 }
 
