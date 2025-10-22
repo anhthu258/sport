@@ -7,6 +7,8 @@
   align-items: flex-end;
   background: transparent;
   z-index: 50;
+  touch-action: pan-y; /* Forhindrer zoom på mobile */
+  -webkit-touch-callout: none; /* Forhindrer callout på iOS */
 }
 
 /* Backdrop - klik for at lukke sheet */
@@ -33,8 +35,11 @@
   overscroll-behavior: contain; /* Forhindrer scroll chaining */
   max-height: 100vh; /* Kan fylde hele skærmen som Google Maps */
   cursor: grab; /* Vis at hele sheet kan trækkes */
-  touch-action: none; /* Forhindrer touch gestures på hele sheet */
+  touch-action: pan-y; /* Kun tillad vertikal panning, forhindrer zoom */
   user-select: none; /* Forhindrer tekst markering på hele sheet */
+  -webkit-touch-callout: none; /* Forhindrer callout menu på iOS */
+  -webkit-user-select: none; /* Forhindrer tekst markering på iOS */
+  -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
 }
 
 /* Handle område - container for drag handle */
