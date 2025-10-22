@@ -1,11 +1,10 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
+import { getAuth } from 'firebase/auth';
 import { getFirestore } from "firebase/firestore";
-
 
 //Er ikke nødvendigt hvis vi kun bruger firestore
 //import { getAnalytics } from "firebase/analytics"; 
-
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -22,5 +21,6 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
 export const db = getFirestore(app); //firestore, der hvor vi har vores arrays med posts, hotspots og users
 // const analytics = getAnalytics(app); //Kun nødvendigt hvis vi skal bruge analytics, ikke hvis vi kun bruger firestore
