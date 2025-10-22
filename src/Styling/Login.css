@@ -1,12 +1,4 @@
 /*Styling til både sign up og login*/
-
-:root {
-  --bg: #f9f9f9;
-  --card: #f9f9f9;
-  --accent: #ff512f;
-  --text: #1e1e1e;
-}
-
 *{
     box-sizing: border-box;
     margin: 0;
@@ -23,6 +15,19 @@
   align-items: center;
   justify-content: flex-start;
   padding: 0 20px;
+}
+
+/* Fonts */
+h1, h2, h3{
+  font-family: "anton", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+p, label, button{
+  font-family: "termina", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 /* Nederste sektion med den mørkere baggrund */
@@ -49,6 +54,13 @@
   display: flex;
   align-items: center; /* Centrer titlen lodret */
   justify-content: center; /* Centrer titlen horisontalt */
+}
+
+/* Hero sektion titel styling */
+.hero h2 {
+  color: #1e1e1e; /* Mørk tekstfarve for kontrast */
+  font-size: 32px;
+  font-weight: 700;
 }
 
 /* Form styling */
@@ -84,7 +96,7 @@
 }
 
 .form-container input:focus {
-  border-color: var(--accent);
+  border-color: #ff512f;
   box-shadow: 0 0 0 3px rgba(255, 76, 11, 0.08);
 }
 
@@ -99,8 +111,8 @@
 .btn {
   width: 100%;
   padding: 12px;
-  background: var(--accent);
-  color: white;
+  background: #ff512f;
+  color: #f9f9f9;
   border: none;
   border-radius: 10px;
   font-weight: 700;
