@@ -1,7 +1,7 @@
 // App.jsx
 import { BrowserRouter, Routes, Route } from "react-router";
 import Hometest from "./pages/Hometest.jsx";
-import Discover from "./pages/Discover.jsx";
+import Discover from "./pages/AnkerTestDiscover.jsx";
 import Map from "./pages/Map.jsx";
 import Login from "./pages/Login.jsx";
 import OpretPost from "./pages/Opret_post.jsx";
