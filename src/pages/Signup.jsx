@@ -29,16 +29,16 @@ export default function Signup() {
       await updateProfile(user, { displayName: username });
 
       // archive af user data i firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
+      await setDoc(doc(db, 'profil', user.uid), {
+        uid: user.uid, // unik id (hvordan vi får en random id idk)
         username,
         email,
-        createdAt: serverTimestamp(),
+        createdAt: serverTimestamp(), // gemmer tidspunkt for oprettelse
       });
 
       // efter signup, naviger til login
       navigate('/login');
-    } catch (err) {
+    } catch (err) {  // fejl håndtering onboarding
       console.error(err);
       setError(err.message || 'Signup failed');
     }
@@ -47,7 +47,9 @@ export default function Signup() {
         //selve formularen
   return (
     <section className="login-container">
-      <h2>Sign up</h2>
+      <aside className='hero'>
+        <h2>Sign up</h2>
+      </aside>
       <form onSubmit={handleSubmit} className="form-container">
         <section className="field">
           <label>Username
