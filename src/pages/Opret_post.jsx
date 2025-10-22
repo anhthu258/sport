@@ -54,10 +54,10 @@ export default function OpretPost() {
     e.preventDefault(); // Forhindrer at siden reloader
 
     // Valider at påkrævede felter er udfyldt
-    if (!title || !sport || !location) {
-      setMessage("Udfyld venligst titel, sportsgren og lokation");
-      return;
-    }
+    // if (!title || !sport || !location) {
+    //   setMessage("Udfyld venligst titel, sportsgren og lokation");
+    //   return;
+    // }
 
     // Log data der sendes til Firestore (til debugging)
     console.log("Forsøger at oprette opslag:", {
@@ -78,7 +78,7 @@ export default function OpretPost() {
       sport, // Reference til valgt sportsgren
       timestamp: serverTimestamp(), // Automatisk tidsstempel fra Firestore
     });
-
+          
     // Vis succesbesked og ryd formularen
     setMessage("Opslag oprettet!");
     setTitle("");
