@@ -84,6 +84,44 @@ map.addControl(new mapboxgl.NavigationControl());
 map.scrollZoom.enable();
 map.on("style.load", () => map.setFog({}));
 
+// --- Reset View control (top-left) ---
+class ResetViewControl {
+  onAdd(mapInstance) {
+    this._map = mapInstance;
+    const container = document.createElement("div");
+    container.className = "mapboxgl-ctrl mapboxgl-ctrl-group";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.title = "Reset view";
+    btn.setAttribute("aria-label", "Reset view");
+    btn.innerHTML = "\u21BA"; // simple rotate arrow symbol
+    btn.style.fontSize = "16px";
+    btn.style.lineHeight = "24px";
+    btn.style.width = "48px";
+    btn.style.height = "48px";
+    btn.addEventListener("click", () => {
+      // Restore to the exact start camera
+      map.easeTo({
+        center: START_CENTER,
+        zoom: START_ZOOM,
+        pitch: 0,
+        bearing: 0,
+        duration: 500,
+        easing: (t) => t,
+        essential: true,
+      });
+    });
+
+    container.appendChild(btn);
+    return container;
+  }
+  onRemove() {
+    this._map = undefined;
+  }
+}
+map.addControl(new ResetViewControl(), "top-left");
+
 // Reset tilt when the user reaches the maximum zoom-out (minZoom).
 // Use 'zoomend' so we act after the gesture finishes, avoiding conflicts.
 map.on("zoomend", () => {
