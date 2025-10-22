@@ -22,15 +22,16 @@ export default function OpretPost() {
   useEffect(() => {
     async function fetchOptions() {
       try {
-        // Hent alle sportsgrene fra "sports" collection
-        const sportsSnapshot = await getDocs(collection(db, "sports"));
-        setSportsOptions(
-          sportsSnapshot.docs.map((doc) => ({
-            id: doc.id, // Dokument ID
-            ...(doc.data() || {}), // Alle felter fra dokumentet (name, title, etc.)
-          }))
-        );
-
+        // Hent alle sportsgrene fra "sports" collection, ikke sådan den fungerer
+                                                                const sportsSnapshot = await getDocs(collection(db, "sports"));
+                                                                setSportsOptions(
+                                                                sportsSnapshot.docs.map((doc) => ({
+                                                                    id: doc.id, // Dokument ID
+                                                                    ...(doc.data() || {}), // Alle felter fra dokumentet (name, title, etc.)
+                                                                }))
+                                                                );
+        
+                                                                
         // Hent alle lokationer fra "hotspots" collection
         const locationsSnapshot = await getDocs(collection(db, "hotspots"));
         setLocationOptions(
@@ -54,10 +55,10 @@ export default function OpretPost() {
     e.preventDefault(); // Forhindrer at siden reloader
 
     // Valider at påkrævede felter er udfyldt
-    // if (!title || !sport || !location) {
-    //   setMessage("Udfyld venligst titel, sportsgren og lokation");
-    //   return;
-    // }
+    if (!title || !sport || !location) {
+      setMessage("Udfyld venligst titel, sportsgren og lokation");
+      return;
+    }
 
     // Log data der sendes til Firestore (til debugging)
     console.log("Forsøger at oprette opslag:", {
