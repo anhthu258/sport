@@ -8,7 +8,9 @@ export default function Login() {
 
     return (
         <section className="login-container">
-            <h2>Login</h2>
+            <aside className='hero'>
+                <h2>Login</h2>
+            </aside>
             <LoginForm onLogin={handleLogin} />
         </section>
     );

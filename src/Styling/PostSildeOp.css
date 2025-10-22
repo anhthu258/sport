@@ -1,0 +1,73 @@
+/* Overlay container - dækker hele skærmen */
+.psu-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  background: transparent;
+  z-index: 50;
+}
+
+/* Backdrop - klik for at lukke sheet */
+.psu-backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  border: none;
+}
+
+/* Bottom sheet - hovedcontainer med PNG tekstur */
+.psu-sheet {
+  position: relative;
+  width: 100%;
+  background-image: url(/img/dark-concret.png); /* Mørk tekstur baggrund */
+  background-size: cover;
+  background-color: rgba(17, 17, 17, 0.05); /* Gennemsigtig mørk tone */
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: none;
+  transition: height 120ms cubic-bezier(0.4, 0, 0.2, 1); /* Smooth height animation */
+  overflow: hidden;
+  will-change: height; /* Optimering for height ændringer */
+  overscroll-behavior: contain; /* Forhindrer scroll chaining */
+}
+
+/* Handle område - container for drag handle */
+.psu-handleArea {
+  width: 100%;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  display: flex;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none; /* Forhindrer touch gestures */
+  user-select: none; /* Forhindrer tekst markering */
+}
+
+/* Drag handle - lille grå streg man kan trække i */
+.psu-handle {
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: #444;
+}
+
+/* Header sektion - titel (f.eks. "DOKK1") */
+.psu-header {
+  padding: 8px 16px 0 16px;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+/* Indholdsområde - scrollbar hovedindhold */
+.psu-content {
+  padding: 16px;
+  color: white;
+  overflow: auto;
+  max-height: 100%;
+  scroll-behavior: smooth; /* Smooth scrolling */
+  -webkit-overflow-scrolling: touch; /* Native smooth scroll på iOS */
+  overscroll-behavior: contain; /* Forhindrer scroll chaining */
+}
