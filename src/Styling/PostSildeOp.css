@@ -1,0 +1,59 @@
+.psu-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  z-index: 50;
+}
+
+.psu-backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  border: none;
+}
+
+.psu-sheet {
+  position: relative;
+  width: 100%;
+  background-image: url(/img/dark-concret.png);
+  background-size: cover;
+  background-color: none;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+  transition: height 160ms ease;
+  overflow: hidden;
+}
+
+.psu-handleArea {
+  width: 100%;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  display: flex;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+}
+
+.psu-handle {
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: #444;
+}
+
+.psu-header {
+  padding: 8px 16px 0 16px;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.psu-content {
+  padding: 16px;
+  color: white;
+  overflow: auto;
+  max-height: 100%;
+}
