@@ -69,7 +69,7 @@ body {
   filter: saturate(0.6) brightness(0.98);
 }
 .pin--active {
-  --pin-bg: #2fbf71;
+  --pin-bg: #d6fe03;
 }
 .pin-icon {
   width: 80%;
