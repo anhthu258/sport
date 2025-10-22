@@ -22,23 +22,13 @@ export default function OpretPost() {
   useEffect(() => {
     async function fetchOptions() {
       try {
-
-        // Hent alle sportsgrene fra "sports" collection, ikke sådan den fungerer
-        // const sportsSnapshot = await getDocs(collection(db, "sports"));
-        // setSportsOptions(
-        // sportsSnapshot.docs.map((doc) => ({
-        // id: doc.id, // Dokument ID
-        // ...(doc.data() || {}), // Alle felter fra dokumentet (name, title, etc.)
-        // }))
-        // );
-        
                                                                 
-        // Hent alle lokationer fra "hotspots" collection
+        // Hent alt data fra "hotspots" collection
         const locationsSnapshot = await getDocs(collection(db, "hotspots"));
         setLocationOptions(
           locationsSnapshot.docs.map((doc) => ({
             id: doc.id, // Dokument ID
-            ...(doc.data() || {}), // Alle felter fra dokumentet (name, address, etc.)
+            ...(doc.data() || {}), // Alle felter fra dokumentet (name, sportgren, etc.)
           }))
         );
       } catch (err) {
