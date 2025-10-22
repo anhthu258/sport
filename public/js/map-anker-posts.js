@@ -7,6 +7,7 @@
 (function injectCSS() {
   const css = `
   .marker { position: relative; display: flex; align-items: center; justify-content: center; }
+  .marker-scale { display:flex; align-items:center; justify-content:center; transform-origin: center center; will-change: transform; }
   .pin { width: 28px; height: 28px; border-radius: 999px; background: #ff6b6b; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); display:flex; align-items:center; justify-content:center; overflow:hidden; }
   .pin-icon { width: 16px; height: 16px; object-fit: contain; display: block; }
   `;
@@ -58,6 +59,26 @@ const map = new mapboxgl.Map({
 map.addControl(new mapboxgl.NavigationControl());
 map.scrollZoom.enable();
 map.on("style.load", () => map.setFog({}));
+
+// Zoom-based scaling for HTML markers
+const _markerScaleNodes = [];
+let _pendingRAF = 0;
+function _computeScale(z) {
+  // Smooth growth: ~0.9 at z10 up to ~2.0 at z18
+  const s = 0.9 + Math.max(0, z - 10) * 0.1375; // slope ~0.1375 per zoom
+  return Math.max(0.9, Math.min(2.0, s));
+}
+function _applyScale() {
+  _pendingRAF = 0;
+  const z = map.getZoom();
+  const s = _computeScale(z);
+  for (const n of _markerScaleNodes) n.style.transform = `scale(${s})`;
+}
+function _scheduleScale() {
+  if (_pendingRAF) return;
+  _pendingRAF = requestAnimationFrame(_applyScale);
+}
+map.on("zoom", _scheduleScale);
 
 // Utils: parse DMS string to lat/lng
 function dmsToDecimal(deg, min, sec, dir) {
@@ -132,6 +153,8 @@ async function addHotspotMarker(h, sports) {
   // Build a marker element; if exactly one sport exists, show its white icon inside the pin
   const root = document.createElement("div");
   root.className = "marker";
+  const scaleWrap = document.createElement("div");
+  scaleWrap.className = "marker-scale";
   const pin = document.createElement("div");
   pin.className = "pin";
   const uniqueSports = Array.isArray(sports) ? sports.filter(Boolean) : [];
@@ -143,10 +166,14 @@ async function addHotspotMarker(h, sports) {
     img.src = sportIconUrl(uniqueSports[0]);
     pin.appendChild(img);
   }
-  root.appendChild(pin);
+  scaleWrap.appendChild(pin);
+  root.appendChild(scaleWrap);
   const marker = new mapboxgl.Marker({ element: root })
     .setLngLat([pos.lng, pos.lat])
     .addTo(map);
+  // Track scale wrapper for zoom-scaling
+  _markerScaleNodes.push(scaleWrap);
+  _scheduleScale();
   // No popup/title for now as requested
 }
 
