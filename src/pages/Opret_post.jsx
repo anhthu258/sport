@@ -25,7 +25,6 @@ export default function OpretPost() {
     // Async funktion der henter data fra Firestore
     async function fetchOptions() {
       try {
-
         // Hent alle sportsgrene fra "sports" collection, ikke sådan den fungerer
         // const sportsSnapshot = await getDocs(collection(db, "sports"));
         // setSportsOptions(
@@ -34,15 +33,15 @@ export default function OpretPost() {
         // ...(doc.data() || {}), // Alle felter fra dokumentet (name, title, etc.)
         // }))
         // );
-        
-                                                                
+
         // Hent alle lokationer fra "hotspots" collection
         const locationsSnapshot = await getDocs(collection(db, "hotspots"));
         // Konverter Firestore dokumenter til JavaScript objekter
         setLocationOptions(
           locationsSnapshot.docs.map((doc) => ({
-            id: doc.id, // Dokument ID
-            ...(doc.data() || {}), // Alle felter fra dokumentet (name, address, etc.)
+            //alle dokumenter fra Firestore
+            id: doc.id, // Firestore Dokument ID
+            ...(doc.data() || {}), // Alle felter fra dokumentet (activeplayers, hotspotId og koordinator)
           }))
         );
       } catch (err) {
@@ -162,9 +161,9 @@ export default function OpretPost() {
           <label className="form-label">Lokation</label>
           <select
             className="select"
-            value={location} // Binder til location state
+            value={location} // Binder til location state / viser den valgte lokation
             onChange={(e) => {
-              setLocation(e.target.value); // Opdater lokationens state
+              setLocation(e.target.value); // Opdater lokationens state / gem den nye lokation
               handleLocationChange(e); // Kald funktionen der henter sportsgrene
             }}
           >
@@ -173,8 +172,8 @@ export default function OpretPost() {
             {/* Map over alle lokationer og vis dem som options */}
             {locationOptions.map((loc) => (
               <option key={loc.id} value={loc.id}>
-                {loc.name || loc.title || loc.id}{" "}
-                {/* Vis navn, title eller ID som fallback */}
+                {loc.hotspotid || loc.id}{" "}
+                {/* Vis hotspotid eller Firestore dokument ID som fallback */}
               </option>
             ))}
           </select>
@@ -201,7 +200,7 @@ export default function OpretPost() {
               {/* Map over alle tilgængelige sportsgrene for den valgte lokation */}
               {sportsOptions.map((s, i) => (
                 <option key={i} value={s}>
-                  {s} {/* Vis sportsgrenens navn */}
+                  {s} {/* Vis sportsgrenens navn i dropdown*/}
                 </option>
               ))}
             </select>
