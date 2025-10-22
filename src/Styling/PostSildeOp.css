@@ -4,6 +4,7 @@
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
+  background: transparent;
   z-index: 50;
 }
 
@@ -19,12 +20,13 @@
   width: 100%;
   background-image: url(/img/dark-concret.png);
   background-size: cover;
-  background-color: none;
+  background-color: rgba(17, 17, 17, 0.05);
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
-  transition: height 160ms ease;
+  box-shadow: none;
+  transition: height 120ms cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  will-change: height;
 }
 
 .psu-handleArea {
@@ -35,6 +37,7 @@
   justify-content: center;
   cursor: grab;
   touch-action: none;
+  user-select: none;
 }
 
 .psu-handle {

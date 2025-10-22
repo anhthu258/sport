@@ -1,43 +1,62 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "../Styling/PostSildeOp.css";
 
-// Simple, dependency-free bottom sheet with drag + snap points
-// Usage:
-// <PostSildeOp open={isOpen} onClose={() => setIsOpen(false)}>
-//   ... content ...
-// </PostSildeOp>
-
+/**
+ * PostSildeOp - Bottom Sheet Component
+ *
+ * En gennemsigtig bottom sheet der kan trækkes op og ned, ligesom Google Maps.
+ * Kun håndtaget (den lille grå streg) og PNG teksturen er draggable.
+ *
+ * Props:
+ * - open: boolean - om sheet'en er åben
+ * - onClose: function - kaldes når sheet lukkes
+ * - initialHeight: number - start højde i pixels (default: 120)
+ * - maxHeightPercent: number - max højde som % af skærm (default: 85)
+ * - header: React node - header indhold (f.eks. "DOKK1")
+ * - children: React node - hovedindhold
+ *
+ * Usage:
+ * <PostSildeOp open={isOpen} onClose={() => setIsOpen(false)} header={<div>DOKK1</div>}>
+ *   Indhold her...
+ * </PostSildeOp>
+ */
 export default function PostSildeOp({
-  open = false,
-  onClose,
-  initialHeight = 120,
-  maxHeightPercent = 85,
-  header,
-  children,
+  open = false, // Om bottom sheet er åben
+  onClose, // Funktion der kaldes når sheet lukkes
+  initialHeight = 120, // Start højde i pixels
+  maxHeightPercent = 85, // Max højde som procent af skærm
+  header, // Header indhold (f.eks. "DOKK1")
+  children, // Hovedindhold
 }) {
-  const containerRef = useRef(null);
-  const sheetRef = useRef(null);
-  const startYRef = useRef(0);
-  const startHeightRef = useRef(0);
+  // Refs til DOM elementer og drag state
+  const containerRef = useRef(null); // Overlay container
+  const sheetRef = useRef(null); // Bottom sheet element
+  const startYRef = useRef(0); // Start Y position ved drag
+  const startHeightRef = useRef(0); // Start højde ved drag
+
+  // State for sheet højde og drag status
   const [height, setHeight] = useState(initialHeight);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Clamp utility
+  // Utility funktion til at begrænse værdi mellem min og max
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
+  // Beregner maksimal højde baseret på skærmstørrelse
   const getMaxHeight = useCallback(() => {
     const viewportH = window.innerHeight;
     return Math.round((maxHeightPercent / 100) * viewportH);
   }, [maxHeightPercent]);
 
-  const minHeight = 80; // collapsed peek
+  const minHeight = 80; // Minimum højde når collapsed (peek)
 
+  // Når sheet åbnes, sæt højde til mellem min og max
   useEffect(() => {
     if (!open) return;
     const maxH = getMaxHeight();
     setHeight((h) => clamp(h || initialHeight, minHeight, maxH));
   }, [open, getMaxHeight, initialHeight]);
 
+  // Lytter efter Escape tast for at lukke sheet
   useEffect(() => {
     const onKey = (e) => {
       if (!open) return;
@@ -47,35 +66,46 @@ export default function PostSildeOp({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  // Starter drag operation - gemmer start position og højde
   const beginDrag = (clientY) => {
     setIsDragging(true);
     startYRef.current = clientY;
     startHeightRef.current = height;
-    document.body.style.userSelect = "none";
+    document.body.style.userSelect = "none"; // Forhindrer tekst markering under drag
   };
 
+  // Håndterer start af drag - kun fra håndtaget
   const onPointerDown = (e) => {
-    // Only allow dragging from the handle bar itself, not the entire area
+    // Kun tillad drag fra håndtaget, ikke indholdet
     if (!e.target.closest(".psu-handle")) return;
     e.preventDefault();
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     beginDrag(clientY);
   };
 
+  // Håndterer drag bevægelse - opdaterer højde i real-time med requestAnimationFrame
   const onPointerMove = (e) => {
     if (!isDragging) return;
+    e.preventDefault(); // Forhindrer scrolling på mobile
+
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     const delta = startYRef.current - clientY; // drag up increases height
     const maxH = getMaxHeight();
-    setHeight(clamp(startHeightRef.current + delta, minHeight, maxH));
+    const newHeight = clamp(startHeightRef.current + delta, minHeight, maxH);
+
+    // Brug requestAnimationFrame for smooth animation
+    requestAnimationFrame(() => {
+      setHeight(newHeight);
+    });
   };
 
+  // Håndterer slutning af drag - snap til nærmeste position med smooth transition
   const onPointerUp = () => {
     if (!isDragging) return;
     setIsDragging(false);
     document.body.style.userSelect = "";
 
-    // Snap logic: to min, mid, or max
+    // Snap logik: snap til min, mid eller max højde
     const maxH = getMaxHeight();
     const mid = Math.round((minHeight + maxH) / 2);
     const current = height;
@@ -83,9 +113,14 @@ export default function PostSildeOp({
     if (current < (minHeight + mid) / 2) target = minHeight;
     else if (current < (mid + maxH) / 2) target = mid;
     else target = maxH;
-    setHeight(target);
+
+    // Smooth snap animation
+    requestAnimationFrame(() => {
+      setHeight(target);
+    });
   };
 
+  // Tilføjer event listeners for mouse og touch events
   useEffect(() => {
     window.addEventListener("mousemove", onPointerMove);
     window.addEventListener("mouseup", onPointerUp);
@@ -99,6 +134,7 @@ export default function PostSildeOp({
     };
   });
 
+  // Hvis sheet ikke er åben, render intet
   if (!open) return null;
 
   return (
@@ -109,13 +145,16 @@ export default function PostSildeOp({
       aria-modal="true"
       aria-label="Detaljer"
     >
+      {/* Backdrop - klik for at lukke */}
       <button
         className="psu-backdrop"
         aria-label="Luk"
         onClick={() => onClose && onClose()}
       />
 
+      {/* Bottom sheet med dynamisk højde */}
       <div ref={sheetRef} className="psu-sheet" style={{ height }}>
+        {/* Drag handle - kun denne del er draggable */}
         <div className="psu-handleArea">
           <div
             className="psu-handle"
@@ -127,11 +166,11 @@ export default function PostSildeOp({
           />
         </div>
 
+        {/* Header indhold (f.eks. "DOKK1") */}
         {header ? <div className="psu-header">{header}</div> : null}
 
-        <div className="psu-content" style={{ pointerEvents: "auto" }}>
-          {children}
-        </div>
+        {/* Hovedindhold - ikke draggable */}
+        <div className="psu-content">{children}</div>
       </div>
     </div>
   );
