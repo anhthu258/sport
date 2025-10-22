@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router';
 
+const MIN_PASSWORD = 8; // <-- minimum længde for password
+
 export default function LoginForm({ onLogin }) {
     // state til inputfelter + fejl
     const [username, setUsername] = useState('');
@@ -10,11 +12,15 @@ export default function LoginForm({ onLogin }) {
     // submit-handler: kald callback hvis valideret
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (username && password) {
-            onLogin?.(username, password); // kald parent-handler hvis defineret
-        } else {
+        if (!username || !password) {
             setError('Please fill in both fields.');
+            return;
         }
+        if (password.length < MIN_PASSWORD) { // <-- minimum længde for password
+            setError(`Password must be at least ${MIN_PASSWORD} characters.`);
+            return;
+        }
+        onLogin?.(username, password);
     };
 
     return (
@@ -28,7 +34,7 @@ export default function LoginForm({ onLogin }) {
             {/* adgangskode felt */}
             <aside className="field">
                 <label htmlFor="password">Password</label>
-                <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <input id="password" type="password" minLength={MIN_PASSWORD} value={password} onChange={(e)=>setPassword(e.target.value)} />
             </aside>
 
             {/* fejl besked */}

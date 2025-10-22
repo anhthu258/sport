@@ -6,6 +6,8 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function Signup() {
+  const MAX_USERNAME = 25; // <-- maks længde for brugernavn
+  const MIN_PASSWORD = 8; // <-- minimum længde for password
 // lokal state for formularfelter
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -30,6 +32,18 @@ export default function Signup() {
       return;
     }
 
+    // Force max længde for brugernavn
+    if (username.length > MAX_USERNAME) {
+      setError(`Username must be ${MAX_USERNAME} characters or less.`);
+      return;
+    }
+
+    // Force minimum længde for password
+    if (password.length < MIN_PASSWORD) {
+      setError(`Password must be at least ${MIN_PASSWORD} characters.`);
+      return;
+    }
+
     try {
     // Opret bruger i Firebase Auth
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
@@ -43,10 +57,9 @@ export default function Signup() {
         uid: user.uid,
         username,
         email,
-        createdAt: serverTimestamp(),
       });
 
-    // Naviger til login efter succes
+    // Naviger til login efter succesfuld signup
       navigate('/login');
     } catch (err) {
       console.error(err);
@@ -62,7 +75,12 @@ export default function Signup() {
         <section className="field">
           <label>
             Username
-            <input name="username" value={username} onChange={(e) => setUsername(e.target.value)} />
+            <input
+              name="username"
+              maxLength={MAX_USERNAME}   // <-- prevents typing longer than limit
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
           </label>
         </section>
 
@@ -78,7 +96,13 @@ export default function Signup() {
         <section className="field">
           <label>
             Password
-            <input name="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input
+              name="password"
+              type="password"
+              minLength={MIN_PASSWORD}   // <-- prevents shorter input in supporting browsers
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </label>
         </section>
 
