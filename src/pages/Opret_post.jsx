@@ -1,6 +1,6 @@
 // Opret Post komponent - formular til at oprette nye sportsopslag
 import { useEffect, useState } from "react";
-import "./Opret_post.css";
+import "../styling/Opret_post.css";
 import { serverTimestamp } from "firebase/firestore";
 import { db } from "../assets/firebase";
 import { collection, addDoc, getDocs } from "firebase/firestore";
@@ -22,15 +22,16 @@ export default function OpretPost() {
   useEffect(() => {
     async function fetchOptions() {
       try {
-        // Hent alle sportsgrene fra "sports" collection
-        const sportsSnapshot = await getDocs(collection(db, "sports"));
-        setSportsOptions(
-          sportsSnapshot.docs.map((doc) => ({
-            id: doc.id, // Dokument ID
-            ...(doc.data() || {}), // Alle felter fra dokumentet (name, title, etc.)
-          }))
-        );
-
+        // Hent alle sportsgrene fra "sports" collection, ikke sådan den fungerer
+                                                                const sportsSnapshot = await getDocs(collection(db, "sports"));
+                                                                setSportsOptions(
+                                                                sportsSnapshot.docs.map((doc) => ({
+                                                                    id: doc.id, // Dokument ID
+                                                                    ...(doc.data() || {}), // Alle felter fra dokumentet (name, title, etc.)
+                                                                }))
+                                                                );
+        
+                                                                
         // Hent alle lokationer fra "hotspots" collection
         const locationsSnapshot = await getDocs(collection(db, "hotspots"));
         setLocationOptions(
@@ -78,7 +79,7 @@ export default function OpretPost() {
       sport, // Reference til valgt sportsgren
       timestamp: serverTimestamp(), // Automatisk tidsstempel fra Firestore
     });
-
+          
     // Vis succesbesked og ryd formularen
     setMessage("Opslag oprettet!");
     setTitle("");

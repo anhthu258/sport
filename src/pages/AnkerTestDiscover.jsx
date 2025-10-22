@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import Map from "./Map.jsx";
+import Filter from "../components/Filter.jsx";
+import { db } from "../assets/firebase.js";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function Discover() {
   const containerRef = useRef(null);
@@ -11,6 +14,10 @@ export default function Discover() {
   const [dragging, setDragging] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [handleTop, setHandleTop] = useState(0);
+  const [selectedSport, setSelectedSport] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [postsError, setPostsError] = useState(null);
   const drag = useRef({ startX: 0, panelAtStart: 0, id: null });
   const carDrag = useRef({
     active: false,
@@ -55,7 +62,7 @@ export default function Discover() {
     drag.current = { startX: e.clientX, panelAtStart: panelX, id: e.pointerId };
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {}
+    } catch { /* ignore */ }
     setDragging(true);
   };
   const onMove = (e) => {
@@ -99,6 +106,33 @@ export default function Discover() {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Load posts once
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingPosts(true);
+        const snap = await getDocs(collection(db, "posts"));
+        const list = snap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
+        if (!cancelled) setPosts(list);
+      } catch (err) {
+        console.error("Failed to load posts", err);
+        if (!cancelled) setPostsError("Kunne ikke hente opslag");
+      } finally {
+        if (!cancelled) setLoadingPosts(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Derive filtered posts by sport
+  const filteredPosts = useMemo(() => {
+    if (!selectedSport) return posts;
+    return posts.filter((p) => (p.sport || "").toString() === selectedSport);
+  }, [posts, selectedSport]);
+
   // Desktop drag-to-scroll for the carousel (also works on touch)
   const onCarDown = (e) => {
     // Left click or touch only
@@ -106,7 +140,7 @@ export default function Discover() {
     e.stopPropagation();
     try {
       e.preventDefault();
-    } catch {}
+    } catch { /* ignore */ }
     const el = slidesRef.current;
     if (!el) return;
     carDrag.current = {
@@ -117,7 +151,7 @@ export default function Discover() {
     };
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {}
+    } catch { /* ignore */ }
     // Prevent text/image selection while dragging
     el.style.userSelect = "none";
     el.style.cursor = "grabbing";
@@ -127,7 +161,7 @@ export default function Discover() {
     e.stopPropagation();
     try {
       e.preventDefault();
-    } catch {}
+    } catch { /* ignore */ }
     if (e.pointerType === "mouse" && e.buttons === 0) {
       onCarUp(e);
       return;
@@ -321,46 +355,19 @@ export default function Discover() {
           </div>
 
           {/* Activities strip */}
-          <div
-            style={{
-              marginTop: 12,
-              background: "#e5e7eb",
-              color: "#111827",
-              borderRadius: 16,
-              padding: 12,
-            }}
-          >
-            <div
-              style={{ textAlign: "center", fontWeight: 700, marginBottom: 8 }}
-            >
-              Aktiviteter
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-around" }}>
-              {["#fb4d3d", "#34d399", "#60a5fa", "#f59e0b"].map((c, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "grid",
-                    placeItems: "center",
-                    width: 56,
-                    height: 56,
-                    borderRadius: 999,
-                    background: "#fff",
-                    boxShadow: "inset 0 0 0 3px #e5e7eb",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 999,
-                      background: c,
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
+          <div style={{ marginTop: 12 }}>
+            <Filter
+              selectedSport={selectedSport}
+              onFilterChange={({ sportId }) => setSelectedSport(sportId)}
+              sports={[
+                { id: "basketball", name: "Basketball" },
+                { id: "football", name: "Fodbold" },
+                { id: "tennis", name: "Tennis" },
+                { id: "volleyball", name: "Volleyball" },
+              ]}
+            />
           </div>
+
 
           {/* Prev/Next chevrons */}
           <button
@@ -424,31 +431,40 @@ export default function Discover() {
 
         {/* Rest of the page scrollable content */}
         <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
-          <div style={{ display: "grid", gap: 12 }}>
-            {[
-              "Basketball Court",
-              "Football Field",
-              "Tennis Courts",
-              "Running Track",
-            ].map((title, i) => (
-              <article
-                key={i}
-                style={{
-                  background: "#111827",
-                  border: "1px solid #1f2937",
-                  borderRadius: 12,
-                  padding: 16,
-                }}
-              >
-                <h2 style={{ margin: 0, fontSize: 16 }}>{title}</h2>
-                <p
-                  style={{ margin: "6px 0 0", color: "#9ca3af", fontSize: 13 }}
+          {postsError && (
+            <div style={{ color: "#fca5a5", marginBottom: 12 }}>{postsError}</div>
+          )}
+          {loadingPosts && posts.length === 0 ? (
+            <div style={{ opacity: 0.8 }}>Indlæser...</div>
+          ) : filteredPosts.length === 0 ? (
+            <div style={{ opacity: 0.8 }}>Ingen opslag for den valgte sportsgren.</div>
+          ) : (
+            <div style={{ display: "grid", gap: 12 }}>
+              {filteredPosts.map((post) => (
+                <article
+                  key={post.id}
+                  style={{
+                    background: "#111827",
+                    border: "1px solid #1f2937",
+                    borderRadius: 12,
+                    padding: 16,
+                  }}
                 >
-                  Replace this sample with your own content.
-                </p>
-              </article>
-            ))}
-          </div>
+                  <h2 style={{ margin: 0, fontSize: 16 }}>
+                    {post.title || "Untitled"}
+                  </h2>
+                  <p style={{ margin: "6px 0 0", color: "#9ca3af", fontSize: 13 }}>
+                    {post.details || "Ingen detaljer"}
+                  </p>
+                  {post.time && (
+                    <div style={{ marginTop: 6, opacity: 0.8, fontSize: 12 }}>
+                      Tidspunkt: {post.time}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
