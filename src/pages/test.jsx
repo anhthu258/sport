@@ -19,8 +19,6 @@ export default function Test() {
 
   return (
     <div style={{ height: "100dvh", padding: 16 }}>
-      {/* Test knapper for at kontrollere sheet */}
-      <h2>Test bottom sheet</h2>
 
       {/* Bottom sheet komponent */}
       <PostSildeOp
