@@ -6,14 +6,12 @@
 // Inject CSS for markers and popup
 (function injectCSS() {
   const css = `
+  .marker { position: relative; display: flex; flex-direction: column; align-items: center; }
+  .marker-icons { display: inline-flex; gap: 4px; background: #fff; border-radius: 8px; padding: 2px 6px; box-shadow: 0 2px 6px rgba(0,0,0,.2); transform: translateY(-6px); }
+  .marker-icon { width: 16px; height: 16px; object-fit: contain; display: block; }
   .pin { width: 28px; height: 28px; border-radius: 999px; background: #ff6b6b; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
   .popup { font: 12px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial; color: #111; }
-  .popup h3 { margin: 6px 0 0; font-size: 14px; text-transform: uppercase; }
-  .icons-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
-  .sport-icon { width: 18px; height: 18px; background: center/contain no-repeat; display: inline-block; }
-  .sport-icon--basketball { background-image: url('/img/icons/basketball.png'); }
-  .sport-icon--soccer, .sport-icon--fodbold { background-image: url('/img/icons/soccer.png'); }
-  .sport-icon--volleyball { background-image: url('/img/icons/volleyball.png'); }
+  .popup h3 { margin: 0; font-size: 14px; text-transform: uppercase; }
   `;
   const style = document.createElement("style");
   style.textContent = css;
@@ -80,14 +78,17 @@ function parseDMSPair(s) {
   return { lat, lng };
 }
 
-// Map sport labels to icon class
-function sportIconClass(sport) {
+// Map sport labels to PNG icon filenames in /img/icons
+function sportKey(sport) {
   const k = (sport || "").toLowerCase();
   if (k.includes("basket")) return "basketball";
   if (k === "fodbold" || k.includes("soccer") || k.includes("football"))
     return "soccer";
   if (k.includes("volley")) return "volleyball";
-  return "basketball"; // fallback to a generic icon if unknown
+  return "basketball"; // fallback
+}
+function sportIconUrl(sport) {
+  return `/img/icons/${sportKey(sport)}.png`;
 }
 
 // Data fetchers
@@ -120,24 +121,8 @@ async function fetchPostsGroupedByHotspot() {
 }
 
 // Popup renderer
-function renderPopupHTML(title, sportsArr) {
-  const sports = Array.isArray(sportsArr)
-    ? sportsArr.map((s) => (s ?? "").toString().trim()).filter(Boolean)
-    : [];
-  const icons = sports
-    .map(
-      (s) =>
-        `<span class="sport-icon sport-icon--${sportIconClass(
-          s
-        )}" title="${s}"></span>`
-    )
-    .join("");
-  const iconsRow =
-    icons ||
-    '<span style="color:#6b7280;font-size:12px;">Ingen aktiviteter endnu</span>';
-  return `<div class="popup"><div class="icons-row">${iconsRow}</div><h3>${
-    title || "Hotspot"
-  }</h3></div>`;
+function renderPopupHTML(title) {
+  return `<div class="popup"><h3>${title || "Hotspot"}</h3></div>`;
 }
 
 // Marker helper
@@ -147,9 +132,24 @@ async function addHotspotMarker(h, sports) {
     console.warn("Could not parse koordinater for", h);
     return;
   }
-  const el = document.createElement("div");
-  el.className = "pin";
-  const marker = new mapboxgl.Marker({ element: el })
+  // Build a marker element with an icons row (pngs) on top of the pin
+  const root = document.createElement("div");
+  root.className = "marker";
+  const icons = document.createElement("div");
+  icons.className = "marker-icons";
+  icons.innerHTML = (Array.isArray(sports) ? sports : [])
+    .map(
+      (s) =>
+        `<img class="marker-icon" alt="${s}" title="${s}" src="${sportIconUrl(
+          s
+        )}"/>`
+    )
+    .join("");
+  const pin = document.createElement("div");
+  pin.className = "pin";
+  if (icons.innerHTML) root.appendChild(icons);
+  root.appendChild(pin);
+  const marker = new mapboxgl.Marker({ element: root })
     .setLngLat([pos.lng, pos.lat])
     .addTo(map);
   marker.getElement().style.cursor = "pointer";
@@ -159,7 +159,7 @@ async function addHotspotMarker(h, sports) {
       ev.stopPropagation();
       new mapboxgl.Popup({ offset: 12 })
         .setLngLat([pos.lng, pos.lat])
-        .setHTML(renderPopupHTML(h.id, sports))
+        .setHTML(renderPopupHTML(h.id))
         .addTo(map);
     },
     { passive: false }
