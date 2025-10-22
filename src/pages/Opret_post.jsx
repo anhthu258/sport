@@ -25,8 +25,8 @@ export default function OpretPost() {
     // Async funktion der henter data fra Firestore
     async function fetchOptions() {
       try {
+
         // Hent alle sportsgrene fra "sports" collection, ikke sådan den fungerer
-        // Dette er kommenteret ud fordi sportsgrene hentes dynamisk baseret på valgt lokation
         // const sportsSnapshot = await getDocs(collection(db, "sports"));
         // setSportsOptions(
         // sportsSnapshot.docs.map((doc) => ({
@@ -34,14 +34,14 @@ export default function OpretPost() {
         // ...(doc.data() || {}), // Alle felter fra dokumentet (name, title, etc.)
         // }))
         // );
-
+        
+                                                                
         // Hent alle lokationer fra "hotspots" collection
-        // Dette henter alle tilgængelige lokationer fra Firestore
         const locationsSnapshot = await getDocs(collection(db, "hotspots"));
         // Konverter Firestore dokumenter til JavaScript objekter
         setLocationOptions(
           locationsSnapshot.docs.map((doc) => ({
-            id: doc.id, // Dokument ID fra Firestore
+            id: doc.id, // Dokument ID
             ...(doc.data() || {}), // Alle felter fra dokumentet (name, address, etc.)
           }))
         );
