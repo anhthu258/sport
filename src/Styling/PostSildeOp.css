@@ -21,7 +21,7 @@
 .psu-sheet {
   position: relative;
   width: 100%;
-  background-image: url(/img/dark-concret.png); /* Mørk tekstur baggrund */
+  background-image: url(/img/dark-concret.png); 
   background-size: cover;
   background-color: rgba(17, 17, 17, 0.05); /* Gennemsigtig mørk tone */
   border-top-left-radius: 16px;

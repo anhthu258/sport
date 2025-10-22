@@ -1,19 +1,36 @@
 import { useState } from "react";
 import PostSildeOp from "../components/PostSildeOp";
 
+/**
+ * Test page for PostSildeOp component
+ *
+ * Denne side demonstrerer bottom sheet funktionaliteten.
+ * Sheet'en starter åben og kan trækkes op/ned.
+ *
+ * Features:
+ * - Bottom sheet med drag funktionalitet
+ * - Header med "DOKK1" titel
+ * - Gennemsigtig PNG tekstur baggrund
+ * - Smooth animations og scrolling
+ */
 export default function Test() {
+  // State for at kontrollere om bottom sheet er åben
   const [open, setOpen] = useState(true);
 
   return (
     <div style={{ height: "100dvh", padding: 16 }}>
+      {/* Test knapper for at kontrollere sheet */}
+      <h2>Test bottom sheet</h2>
 
+      {/* Bottom sheet komponent */}
       <PostSildeOp
-        open={open}
-        onClose={() => setOpen(false)}
-        header={<div>DOKK1</div>}
-        initialHeight={140}
-        maxHeightPercent={85}
+        open={open} // Om sheet er åben
+        onClose={() => setOpen(false)} // Funktion der lukker sheet
+        header={<div>DOKK1</div>} // Header titel
+        initialHeight={140} // Start højde i pixels
+        maxHeightPercent={85} // Max højde som % af skærm
       >
+        {/* Tom bottom sheet til test */}
       </PostSildeOp>
     </div>
   );
