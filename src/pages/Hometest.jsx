@@ -21,6 +21,9 @@ export default function Hometest() {
           <li>
             <Link to="/opretpost">Opret Post</Link>
           </li>
+          <li>
+            <Link to="/filtertest">Filter Test</Link>
+          </li>
         </ul>
       </nav>
     </div>

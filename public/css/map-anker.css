@@ -1,0 +1,80 @@
+/* Layout */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+/* Marker + Pin styles */
+.marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.marker-scale {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pin {
+  --pin-bg: #ff6b6b;
+  --pin-border: #fff;
+  --pin-size: 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--pin-bg);
+  border: 2px solid var(--pin-border);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  position: relative;
+}
+.pin::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--pin-size) * -0.27);
+  width: 0;
+  height: 0;
+  border-left: calc(var(--pin-size) * 0.18) solid transparent;
+  border-right: calc(var(--pin-size) * 0.18) solid transparent;
+  border-top: calc(var(--pin-size) * 0.22) solid var(--pin-border);
+}
+.pin::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--pin-size) * -0.24);
+  width: 0;
+  height: 0;
+  border-left: calc(var(--pin-size) * 0.15) solid transparent;
+  border-right: calc(var(--pin-size) * 0.15) solid transparent;
+  border-top: calc(var(--pin-size) * 0.19) solid var(--pin-bg);
+}
+.pin--empty {
+  --pin-bg: #b0b7c3;
+  --pin-border: #e7eaf0;
+  filter: saturate(0.6) brightness(0.98);
+}
+.pin--active {
+  --pin-bg: #d6fe03;
+}
+.pin-icon {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}

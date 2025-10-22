@@ -80,8 +80,7 @@
 .form-label {
   display: block; /* Labels på egen linje */
   margin-bottom: 8px; /* Afstand til input felt */
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family: "anton", sans-serif;
   font-weight: 700;
   letter-spacing: 0.5px; /* Lidt ekstra afstand mellem bogstaver */
 }
@@ -164,8 +163,7 @@
 .message {
   margin-top: 12px; /* Afstand fra formular */
   font-size: 14px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family: "anton", sans-serif;
   color: #a3e635; /* Grøn farve for positive beskeder */
 }
 
