@@ -152,7 +152,7 @@ export default function PostSildeOp({
       window.removeEventListener("touchmove", onPointerMove, { capture: true });
       window.removeEventListener("touchend", onPointerUp, { capture: true });
     };
-  }, [onPointerMove, onPointerUp]);
+  });
 
   // Hvis sheet ikke er åben, render intet
   if (!open) return null;
