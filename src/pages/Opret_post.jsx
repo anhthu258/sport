@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "../styling/Opret_post.css";
 import { serverTimestamp } from "firebase/firestore";
 import { db } from "../assets/firebase";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection, addDoc, getDoc, doc } from "firebase/firestore";
 
 export default function OpretPost() {
   // State for formularens input felter
@@ -23,17 +23,17 @@ export default function OpretPost() {
     async function fetchOptions() {
       try {
         // Hent alle sportsgrene fra "sports" collection, ikke sådan den fungerer
-                                                                const sportsSnapshot = await getDocs(collection(db, "sports"));
-                                                                setSportsOptions(
-                                                                sportsSnapshot.docs.map((doc) => ({
-                                                                    id: doc.id, // Dokument ID
-                                                                    ...(doc.data() || {}), // Alle felter fra dokumentet (name, title, etc.)
-                                                                }))
-                                                                );
+        // const sportsSnapshot = await getDocs(collection(db, "sports"));
+        // setSportsOptions(
+        // sportsSnapshot.docs.map((doc) => ({
+        // id: doc.id, // Dokument ID
+        // ...(doc.data() || {}), // Alle felter fra dokumentet (name, title, etc.)
+        // }))
+        // );
         
                                                                 
         // Hent alle lokationer fra "hotspots" collection
-        const locationsSnapshot = await getDocs(collection(db, "hotspots"));
+        const locationsSnapshot = await getDoc(collection(db, "hotspots"));
         setLocationOptions(
           locationsSnapshot.docs.map((doc) => ({
             id: doc.id, // Dokument ID
@@ -49,6 +49,30 @@ export default function OpretPost() {
     // Kald funktionen når komponenten mountes
     fetchOptions();
   }, []); // Tom dependency array = kør kun ved første load
+
+  async function handleLocationChange(e) {
+    const selectedLocationId = e.target.value;
+    setLocation(selectedLocationId);
+    setSportsOptions([]); // ryd før ny indlæsning
+
+    if (!selectedLocationId) return;
+
+    try {
+      const locationRef = doc(db, "hotspots", selectedLocationId);
+      const locationSnap = await getDoc(locationRef);
+
+      if (locationSnap.exists()) {
+        const data = locationSnap.data();
+        // antager at "sportsgren" er et array i hotspot-dokumentet
+        setSportsOptions(data.sportsgren || []);
+      } else {
+        console.warn("Lokationen blev ikke fundet i Firestore");
+      }
+    } catch (err) {
+      console.error("Fejl ved hentning af sportsgrene:", err);
+      setMessage("Der opstod en fejl – prøv igen senere.");
+    }
+  }
 
   // Håndterer når brugeren indsender formularen
   async function handleSubmit(e) {
@@ -87,7 +111,8 @@ export default function OpretPost() {
     setLocation("");
     setTime("");
     setDetails("");
-  }
+    setSportsOptions([]);
+  } 
 
   // Render formularen med alle input felter
   return (
@@ -117,7 +142,7 @@ export default function OpretPost() {
           <select
             className="select"
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            onChange={handleLocationChange}
           >
             <option value="">Vælg en lokation</option>
             {/* Vis alle tilgængelige lokationer fra Firestore */}
@@ -130,20 +155,24 @@ export default function OpretPost() {
         </div>
 
         {/* Sportsgren og tidspunkt i samme række */}
-        <div className="form-row">
-          {/* Sportsgren dropdown - hentet fra Firestore */}
+         <div className="form-row">
+          {/* Sportsgren */}
           <div className="form-group">
             <label className="form-label">Sportsgren</label>
             <select
               className="select"
               value={sport}
               onChange={(e) => setSport(e.target.value)}
+              disabled={!sportsOptions.length}
             >
-              <option value="">Vælg en sportsgren</option>
-              {/* Vis alle tilgængelige sportsgrene fra Firestore */}
-              {sportsOptions.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name || s.title || s.id}
+              <option value="">
+                {sportsOptions.length
+                  ? "Vælg en sportsgren"
+                  : "Vælg først en lokation"}
+              </option>
+              {sportsOptions.map((s, i) => (
+                <option key={i} value={s}>
+                  {s}
                 </option>
               ))}
             </select>
