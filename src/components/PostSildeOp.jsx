@@ -86,12 +86,16 @@ export default function PostSildeOp({
   // Håndterer drag bevægelse - opdaterer højde i real-time med requestAnimationFrame
   const onPointerMove = (e) => {
     if (!isDragging) return;
-    e.preventDefault(); // Forhindrer scrolling på mobile
 
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     const delta = startYRef.current - clientY; // drag up increases height
     const maxH = getMaxHeight();
     const newHeight = clamp(startHeightRef.current + delta, minHeight, maxH);
+
+    // Kun preventDefault hvis vi faktisk dragger (ikke bare scroller)
+    if (Math.abs(delta) > 5) {
+      e.preventDefault(); // Forhindrer scrolling kun når vi dragger
+    }
 
     // Brug requestAnimationFrame for smooth animation
     requestAnimationFrame(() => {
