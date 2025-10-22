@@ -70,7 +70,7 @@ export default function OpretPost() {
 
     // Gem opslaget i Firestore "posts" collection
     await addDoc(collection(db, "posts"), {
-      creatorId: "BrugerID", // TODO: Erstat med rigtig bruger ID
+      creatorId: "BrugerID", // TODO: Erstat med rigtig bruger ID ???????? vi venter på race
       hotspotId: location, // Reference til valgt lokation
       title, // Postens titel
       details, // Beskrivelse
