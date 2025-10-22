@@ -19,14 +19,13 @@ export default function Test() {
 
   return (
     <div style={{ height: "100dvh", padding: 16 }}>
-
       {/* Bottom sheet komponent */}
       <PostSildeOp
         open={open} // Om sheet er åben
         onClose={() => setOpen(false)} // Funktion der lukker sheet
         header={<div>DOKK1</div>} // Header titel
-        initialHeight={140} // Start højde i pixels
-        maxHeightPercent={85} // Max højde som % af skærm
+        initialHeight={180} // Start højde i pixels - collapsed state
+        maxHeightPercent={100} // Max højde som % af skærm
       >
         {/* Tom bottom sheet til test */}
       </PostSildeOp>

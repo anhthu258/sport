@@ -7,6 +7,8 @@
   align-items: flex-end;
   background: transparent;
   z-index: 50;
+  touch-action: pan-y; /* Forhindrer zoom på mobile */
+  -webkit-touch-callout: none; /* Forhindrer callout på iOS */
 }
 
 /* Backdrop - klik for at lukke sheet */
@@ -17,40 +19,63 @@
   border: none;
 }
 
-/* Bottom sheet - hovedcontainer med PNG tekstur */
+/* Bottom sheet - hovedcontainer med PNG tekstur - hele sheet er draggable */
 .psu-sheet {
   position: relative;
   width: 100%;
-  background-image: url(/img/dark-concret.png); 
+  background-image: url(/img/dark-concret.png);
   background-size: cover;
   background-color: rgba(17, 17, 17, 0.05); /* Gennemsigtig mørk tone */
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   box-shadow: none;
-  transition: height 120ms cubic-bezier(0.4, 0, 0.2, 1); /* Smooth height animation */
+  transition: height 40ms cubic-bezier(0.1, 0.9, 0.2, 1); /* Ekstra glidende animation */
   overflow: hidden;
-  will-change: height; /* Optimering for height ændringer */
+  /* Fjernet will-change for at forhindre zoom */
   overscroll-behavior: contain; /* Forhindrer scroll chaining */
+  max-height: 100vh; /* Kan fylde hele skærmen som Google Maps */
+  cursor: grab; /* Vis at hele sheet kan trækkes */
+  touch-action: pan-y; /* Kun tillad vertikal panning, forhindrer zoom */
+  user-select: none; /* Forhindrer tekst markering på hele sheet */
+  -webkit-touch-callout: none; /* Forhindrer callout menu på iOS */
+  -webkit-user-select: none; /* Forhindrer tekst markering på iOS */
+  -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
 }
 
 /* Handle område - container for drag handle */
 .psu-handleArea {
   width: 100%;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding-top: 16px; /* Øget padding for lettere at ramme på iPhone */
+  padding-bottom: 16px;
   display: flex;
   justify-content: center;
   cursor: grab;
   touch-action: none; /* Forhindrer touch gestures */
   user-select: none; /* Forhindrer tekst markering */
+  -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
+  -webkit-touch-callout: none; /* Forhindrer callout menu på iOS */
+  min-height: 60px; /* Større touch target for iPhone */
+  background: transparent; /* Fjern debug background for smooth look */
 }
 
 /* Drag handle - lille grå streg man kan trække i */
 .psu-handle {
-  width: 36px;
-  height: 5px;
-  border-radius: 3px;
-  background: #444;
+  width: 50px; /* Bredere for iPhone touch */
+  height: 8px; /* Højere for bedre synlighed på iPhone */
+  border-radius: 4px;
+  background: #888; /* Lysere for bedre synlighed på iPhone */
+  cursor: grab;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Shadow for bedre synlighed */
+}
+
+.psu-handle:hover {
+  background: #888; /* Hover effekt */
+}
+
+.psu-handle:active {
+  background: #aaa; /* Active state */
+  cursor: grabbing;
 }
 
 /* Header sektion - titel (f.eks. "DOKK1") */
@@ -65,9 +90,12 @@
 .psu-content {
   padding: 16px;
   color: white;
-  overflow: auto;
-  max-height: 100%;
+  overflow-y: auto; /* Kun vertikal scrolling som Google Maps */
+  overflow-x: hidden; /* Ingen horizontal scrolling */
+  max-height: calc(100vh - 60px); /* Plads til header og handle */
   scroll-behavior: smooth; /* Smooth scrolling */
   -webkit-overflow-scrolling: touch; /* Native smooth scroll på iOS */
   overscroll-behavior: contain; /* Forhindrer scroll chaining */
+  -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
+  pointer-events: auto; /* Tillad interaktion med indhold */
 }
