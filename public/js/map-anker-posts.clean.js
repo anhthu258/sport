@@ -48,23 +48,92 @@ const db = getFirestore(app);
 // ----------------------------------------------------------------------------
 mapboxgl.accessToken =
   "pk.eyJ1IjoiYW5rZXJkZXJiYW5rZXIiLCJhIjoiY204c2Y0MWR5MDN5bjJrczllNTE3MnhhaiJ9.7fSArYI9db041IbQE8iXgA";
-const aarhusCenter = [10.2039, 56.1629];
+const aarhusCenter = [10.2072, 56.154];
 const aarhusMaxBounds = [
   [10.05, 56.08],
   [10.35, 56.25],
 ];
+// START CONFIG: change these to adjust the initial camera position/zoom.
+// - `START_CENTER` is [lng, lat]
+// - `START_ZOOM` is a numeric zoom level (larger -> closer)
+// Example: set `START_CENTER = [10.22, 56.16]` and `START_ZOOM = 14.5`.
+const START_CENTER = aarhusCenter; // default starting center (replace as needed)
+const START_ZOOM = 12.7; // default starting zoom (replace as needed)
+
+// Tight bounds around the start center (edit the deltas to tighten/loosen)
+// Values are in degrees (roughly ~111km per degree lat; lon depends on latitude)
+const BOUNDS_DELTA_LNG = 0.03; // smaller number => tighter east/west bounds
+const BOUNDS_DELTA_LAT = 0.03; // smaller number => tighter north/south bounds
+const START_BOUNDS = [
+  [START_CENTER[0] - BOUNDS_DELTA_LNG, START_CENTER[1] - BOUNDS_DELTA_LAT],
+  [START_CENTER[0] + BOUNDS_DELTA_LNG, START_CENTER[1] + BOUNDS_DELTA_LAT],
+];
 const map = new mapboxgl.Map({
   container: "map",
   style: "mapbox://styles/ankerderbanker/cmgt7si7h000e01qucza3f2mo",
-  center: aarhusCenter,
-  zoom: 11,
-  minZoom: 10,
+  center: START_CENTER,
+  // Start more zoomed in so map focuses on city-level hotspots immediately
+  zoom: START_ZOOM,
+  // Allow users to zoom out beyond the initial zoom level if they want
+  minZoom: 12.2,
   maxZoom: 18,
-  maxBounds: aarhusMaxBounds,
+  // Use the tighter bounds derived from the start center
+  maxBounds: START_BOUNDS,
 });
 map.addControl(new mapboxgl.NavigationControl());
 map.scrollZoom.enable();
 map.on("style.load", () => map.setFog({}));
+
+// --- Reset View control (top-left) ---
+class ResetViewControl {
+  onAdd(mapInstance) {
+    this._map = mapInstance;
+    const container = document.createElement("div");
+    container.className = "mapboxgl-ctrl mapboxgl-ctrl-group";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.title = "Reset view";
+    btn.setAttribute("aria-label", "Reset view");
+    btn.innerHTML = "\u21BA"; // simple rotate arrow symbol
+    btn.style.fontSize = "16px";
+    btn.style.lineHeight = "24px";
+    btn.style.width = "48px";
+    btn.style.height = "48px";
+    btn.addEventListener("click", () => {
+      // Restore to the exact start camera
+      map.easeTo({
+        center: START_CENTER,
+        zoom: START_ZOOM,
+        pitch: 0,
+        bearing: 0,
+        duration: 500,
+        easing: (t) => t,
+        essential: true,
+      });
+    });
+
+    container.appendChild(btn);
+    return container;
+  }
+  onRemove() {
+    this._map = undefined;
+  }
+}
+map.addControl(new ResetViewControl(), "top-left");
+
+// Reset tilt when the user reaches the maximum zoom-out (minZoom).
+// Use 'zoomend' so we act after the gesture finishes, avoiding conflicts.
+map.on("zoomend", () => {
+  const minZ = map.getMinZoom();
+  const z = map.getZoom();
+  if (z <= minZ + 0.001) {
+    const p = map.getPitch();
+    if (Math.abs(p) > 0.01) {
+      map.easeTo({ pitch: 0, duration: 300, easing: (t) => t });
+    }
+  }
+});
 
 // ----------------------------------------------------------------------------
 // Zoom-based sizing for HTML markers (adjust element size, not CSS transform)
@@ -72,6 +141,17 @@ map.on("style.load", () => map.setFog({}));
 const _pinNodes = []; // track <div class="pin"> nodes for resize on zoom
 const _markers = new Map(); // hotspotId -> { marker, pin }
 let _pendingRAF = 0;
+
+// Focus behavior constants (tweak feel here)
+const FOCUS_Z = 16.0; // target zoom when focusing a pin
+const FOCUS_PITCH = 40; // tilt on focus
+const FOCUS_BEARING_DELTA = 10; // rotate relative to current bearing on focus
+
+function normalizeBearing(b) {
+  // Normalize to [-180, 180)
+  let a = ((((b + 180) % 360) + 360) % 360) - 180;
+  return a;
+}
 
 function _computeScale(z) {
   // Slightly larger pins: ~1.1 at z10 up to ~2.7 at z18 (clamped)
@@ -335,21 +415,28 @@ async function addHotspotMarker(h, sports) {
     "click",
     (ev) => {
       ev.stopPropagation();
-      const TARGET_ZOOM = 16.5; // set point for focusing a pin
       const current = map.getZoom();
-      const shouldZoom = current < TARGET_ZOOM - 0.05; // only zoom if below target
-      const finalZoom = shouldZoom ? TARGET_ZOOM : current; // never zoom further
+      // Always zoom in at least a bit to create a clear focus motion
+      const MIN_ZOOM_DELTA = 0.6;
+      const focusZoom = Math.min(
+        map.getMaxZoom(),
+        Math.max(FOCUS_Z, current + MIN_ZOOM_DELTA)
+      );
 
-      // If we're already essentially centered on this pin and zoomed enough, do nothing
-      const center = map.getCenter();
-      const cPx = map.project([center.lng, center.lat]);
-      const pPx = map.project([pos.lng, pos.lat]);
-      const distPx = Math.hypot(pPx.x - cPx.x, pPx.y - cPx.y);
-      if (!shouldZoom && distPx < 24) return;
+      // No early return: always perform a small focus fly when clicking a pin
+
+      // Build focus view for this click and move camera (no persistent state)
+      const currentBearing = map.getBearing();
+      const focusPitch = FOCUS_PITCH;
+      const focusBearing = normalizeBearing(
+        currentBearing + FOCUS_BEARING_DELTA
+      );
 
       map.flyTo({
         center: [pos.lng, pos.lat],
-        zoom: finalZoom,
+        zoom: focusZoom,
+        pitch: focusPitch,
+        bearing: focusBearing,
         speed: 0.9, // lower is slower, smoother
         curve: 1.6,
         essential: true,
