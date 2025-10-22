@@ -45,6 +45,7 @@
   user-select: none; /* Forhindrer tekst markering */
 }
 
+/* Drag handle - lille grå streg man kan trække i */
 .psu-handle {
   width: 36px;
   height: 5px;
@@ -52,6 +53,7 @@
   background: #444;
 }
 
+/* Header sektion - titel (f.eks. "DOKK1") */
 .psu-header {
   padding: 8px 16px 0 16px;
   color: white;
@@ -59,12 +61,13 @@
   font-size: 18px;
 }
 
+/* Indholdsområde - scrollbar hovedindhold */
 .psu-content {
   padding: 16px;
   color: white;
   overflow: auto;
   max-height: 100%;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  scroll-behavior: smooth; /* Smooth scrolling */
+  -webkit-overflow-scrolling: touch; /* Native smooth scroll på iOS */
+  overscroll-behavior: contain; /* Forhindrer scroll chaining */
 }
