@@ -1,0 +1,97 @@
+:root {
+  --bg: #f9f9f9;
+  --card: #f9f9f9;
+  --accent: #ff512f;
+  --text: #1e1e1e;
+}
+
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 380px; /* sørge for at styling passer til valgte telefon */
+  background: var(--card);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(6, 10, 20, 0.08);
+  box-sizing: border-box;
+}
+
+.form-container .field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.form-container label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-container input {
+  font-size: 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e6e9ef;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-container input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255, 76, 11, 0.08);
+}
+
+.signup-prompt {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.error {
+  color: #b00020;
+  margin: -6px 0 10px;
+  font-size: 14px;
+}
+
+@media (max-width: 420px) {
+  .login-form {
+    padding: 18px;
+    border-radius: 10px;
+  }
+  .login-form input {
+    font-size: 17px;
+    padding: 12px;
+  }
+  .btn {
+    padding: 14px;
+    font-size: 17px;
+  }
+}

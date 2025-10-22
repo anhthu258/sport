@@ -26,33 +26,6 @@
   </head>
   <body>
     <div id="map"></div>
-    <script>
-      mapboxgl.accessToken =
-        "pk.eyJ1IjoiYW5rZXJkZXJiYW5rZXIiLCJhIjoiY204c2Y0MWR5MDN5bjJrczllNTE3MnhhaiJ9.7fSArYI9db041IbQE8iXgA";
-      
-      // Aarhus boundaries (approximate)
-      const aarhusCenter = [10.2039, 56.1629]; // Longitude, Latitude of Aarhus
-      const aarhusMaxBounds = [
-        [10.0500, 56.0800], // Southwest coordinates
-        [10.3500, 56.2500]  // Northeast coordinates
-      ];
-
-      const map = new mapboxgl.Map({
-        container: "map",
-        style: "mapbox://styles/ankerderbanker/cmgt7si7h000e01qucza3f2mo",
-        center: aarhusCenter, // Center on Aarhus
-        zoom: 11, // Zoom level to show city area
-        minZoom: 10, // Minimum zoom to prevent zooming out too far
-        maxZoom: 18, // Maximum zoom level
-        maxBounds: aarhusMaxBounds // Restrict panning to Aarhus area
-      });
-
-      map.addControl(new mapboxgl.NavigationControl());
-      map.scrollZoom.enable(); // Re-enable scroll zoom for navigation within Aarhus
-
-      map.on("style.load", () => {
-        map.setFog({}); // Set the default atmosphere style
-      });
-    </script>
+    <script type="module" src="/js/map-anker-posts.js"></script>
   </body>
 </html>
