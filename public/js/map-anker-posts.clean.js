@@ -201,18 +201,18 @@ function sportKey(sport) {
   const k = (sport || "").toLowerCase();
   if (k.includes("basket")) return "basketball";
   if (k === "fodbold" || k.includes("soccer") || k.includes("football"))
-    return "fodbold"; // file present: fodbold-white.png
-  if (k.includes("volley")) return "volley"; // file present: volley-white.png
-  if (k.includes("tennis")) return "tennis"; // file present: tennis-white.png
+    return "fodbold"; // file present: fodbold-black.png
+  if (k.includes("volley")) return "volley"; // file present: volley-black.png
+  if (k.includes("tennis")) return "tennis"; // file present: tennis-black.png
   return "basketball"; // fallback
 }
 
 /**
- * Build the URL for a white sport icon inside the pin.
+ * Build the URL for a black sport icon inside the pin.
  * @param {string} sport
  */
 function sportIconUrl(sport) {
-  return `/img/${sportKey(sport)}-white.png`;
+  return `/img/${sportKey(sport)}-black.png`;
 }
 
 // ----------------------------------------------------------------------------
