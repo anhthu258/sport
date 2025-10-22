@@ -5,7 +5,7 @@
 /* Hovedcontainer for hele siden */
 .opret-post-page {
   min-height: 100dvh; /* Fylder hele skærmhøjden */
-  background: #000000; /* Sort baggrund som midterste sektion */
+  background: #1e1e1e; /* Sort baggrund som midterste sektion */
   color: #fff;
   position: relative;
 }
