@@ -6,12 +6,9 @@
 // Inject CSS for markers and popup
 (function injectCSS() {
   const css = `
-  .marker { position: relative; display: flex; flex-direction: column; align-items: center; }
-  .marker-icons { display: inline-flex; gap: 4px; background: #fff; border-radius: 8px; padding: 2px 6px; box-shadow: 0 2px 6px rgba(0,0,0,.2); transform: translateY(-6px); }
-  .marker-icon { width: 16px; height: 16px; object-fit: contain; display: block; }
-  .pin { width: 28px; height: 28px; border-radius: 999px; background: #ff6b6b; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
-  .popup { font: 12px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial; color: #111; }
-  .popup h3 { margin: 0; font-size: 14px; text-transform: uppercase; }
+  .marker { position: relative; display: flex; align-items: center; justify-content: center; }
+  .pin { width: 28px; height: 28px; border-radius: 999px; background: #ff6b6b; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .pin-icon { width: 16px; height: 16px; object-fit: contain; display: block; }
   `;
   const style = document.createElement("style");
   style.textContent = css;
@@ -88,7 +85,7 @@ function sportKey(sport) {
   return "basketball"; // fallback
 }
 function sportIconUrl(sport) {
-  return `/img/icons/${sportKey(sport)}.png`;
+  return `/img/${sportKey(sport)}-white.png`;
 }
 
 // Data fetchers
@@ -132,38 +129,25 @@ async function addHotspotMarker(h, sports) {
     console.warn("Could not parse koordinater for", h);
     return;
   }
-  // Build a marker element with an icons row (pngs) on top of the pin
+  // Build a marker element; if exactly one sport exists, show its white icon inside the pin
   const root = document.createElement("div");
   root.className = "marker";
-  const icons = document.createElement("div");
-  icons.className = "marker-icons";
-  icons.innerHTML = (Array.isArray(sports) ? sports : [])
-    .map(
-      (s) =>
-        `<img class="marker-icon" alt="${s}" title="${s}" src="${sportIconUrl(
-          s
-        )}"/>`
-    )
-    .join("");
   const pin = document.createElement("div");
   pin.className = "pin";
-  if (icons.innerHTML) root.appendChild(icons);
+  const uniqueSports = Array.isArray(sports) ? sports.filter(Boolean) : [];
+  if (uniqueSports.length === 1) {
+    const img = document.createElement("img");
+    img.className = "pin-icon";
+    img.alt = uniqueSports[0];
+    img.title = uniqueSports[0];
+    img.src = sportIconUrl(uniqueSports[0]);
+    pin.appendChild(img);
+  }
   root.appendChild(pin);
   const marker = new mapboxgl.Marker({ element: root })
     .setLngLat([pos.lng, pos.lat])
     .addTo(map);
-  marker.getElement().style.cursor = "pointer";
-  marker.getElement().addEventListener(
-    "click",
-    (ev) => {
-      ev.stopPropagation();
-      new mapboxgl.Popup({ offset: 12 })
-        .setLngLat([pos.lng, pos.lat])
-        .setHTML(renderPopupHTML(h.id))
-        .addTo(map);
-    },
-    { passive: false }
-  );
+  // No popup/title for now as requested
 }
 
 // Main
