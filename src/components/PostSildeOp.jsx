@@ -23,8 +23,8 @@ import "../Styling/PostSildeOp.css";
 export default function PostSildeOp({
   open = false, // Om bottom sheet er åben
   onClose, // Funktion der kaldes når sheet lukkes
-  initialHeight = 120, // Start højde i pixels
-  maxHeightPercent = 85, // Max højde som procent af skærm
+  initialHeight = 200, // Start højde i pixels
+  maxHeightPercent = 100, // Max højde som procent af skærm
   header, // Header indhold (f.eks. "DOKK1")
   children, // Hovedindhold
 }) {
@@ -74,11 +74,15 @@ export default function PostSildeOp({
     document.body.style.userSelect = "none"; // Forhindrer tekst markering under drag
   };
 
-  // Håndterer start af drag - kun fra håndtaget
+  // Håndterer start af drag - tillad drag fra hele bottom sheet
   const onPointerDown = (e) => {
-    // Kun tillad drag fra håndtaget, ikke indholdet
-    if (!e.target.closest(".psu-handle")) return;
+    // Tillad drag fra hele bottom sheet, ikke kun handle området
+    if (!e.target.closest(".psu-sheet")) return;
+
+    // Vigtigt: preventDefault først for iPhone
     e.preventDefault();
+    e.stopPropagation();
+
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     beginDrag(clientY);
   };
@@ -90,14 +94,21 @@ export default function PostSildeOp({
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     const delta = startYRef.current - clientY; // drag up increases height
     const maxH = getMaxHeight();
-    const newHeight = clamp(startHeightRef.current + delta, minHeight, maxH);
 
-    // Kun preventDefault hvis vi faktisk dragger (ikke bare scroller)
-    if (Math.abs(delta) > 5) {
-      e.preventDefault(); // Forhindrer scrolling kun når vi dragger
-    }
+    // Ekstra glidende sensitivity for ultra smooth drag
+    const sensitivity = 1.8; // Højere følsomhed for ekstra glidende følelse
+    const adjustedDelta = delta * sensitivity;
+    const newHeight = clamp(
+      startHeightRef.current + adjustedDelta,
+      minHeight,
+      maxH
+    );
 
-    // Brug requestAnimationFrame for smooth animation
+    // Altid preventDefault for ultra smooth drag
+    e.preventDefault();
+    e.stopPropagation();
+
+    // requestAnimationFrame for ekstra smooth animation
     requestAnimationFrame(() => {
       setHeight(newHeight);
     });
@@ -126,15 +137,22 @@ export default function PostSildeOp({
 
   // Tilføjer event listeners for mouse og touch events
   useEffect(() => {
+    // iPhone optimerede event listeners
     window.addEventListener("mousemove", onPointerMove);
     window.addEventListener("mouseup", onPointerUp);
-    window.addEventListener("touchmove", onPointerMove, { passive: false });
-    window.addEventListener("touchend", onPointerUp);
+    window.addEventListener("touchmove", onPointerMove, {
+      passive: false,
+      capture: true,
+    });
+    window.addEventListener("touchend", onPointerUp, {
+      passive: false,
+      capture: true,
+    });
     return () => {
       window.removeEventListener("mousemove", onPointerMove);
       window.removeEventListener("mouseup", onPointerUp);
-      window.removeEventListener("touchmove", onPointerMove);
-      window.removeEventListener("touchend", onPointerUp);
+      window.removeEventListener("touchmove", onPointerMove, { capture: true });
+      window.removeEventListener("touchend", onPointerUp, { capture: true });
     };
   });
 
@@ -156,18 +174,20 @@ export default function PostSildeOp({
         onClick={() => onClose && onClose()}
       />
 
-      {/* Bottom sheet med dynamisk højde */}
-      <div ref={sheetRef} className="psu-sheet" style={{ height }}>
-        {/* Drag handle - kun denne del er draggable */}
+      {/* Bottom sheet med dynamisk højde - hele sheet er draggable */}
+      <div
+        ref={sheetRef}
+        className="psu-sheet"
+        style={{ height }}
+        onMouseDown={onPointerDown}
+        onTouchStart={onPointerDown}
+        role="button"
+        aria-label="Træk for at udvide"
+        tabIndex={0}
+      >
+        {/* Drag handle - visuelt element */}
         <div className="psu-handleArea">
-          <div
-            className="psu-handle"
-            onMouseDown={onPointerDown}
-            onTouchStart={onPointerDown}
-            role="button"
-            aria-label="Træk for at udvide"
-            tabIndex={0}
-          />
+          <div className="psu-handle" />
         </div>
 
         {/* Header indhold (f.eks. "DOKK1") */}
