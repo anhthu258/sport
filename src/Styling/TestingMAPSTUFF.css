@@ -4,6 +4,7 @@
   width: 100%;
   overflow: hidden;
 }
+
 .tm-map-frame {
   position: absolute;
   inset: 0;
@@ -146,6 +147,15 @@
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  /* Hide scrollbars but keep scrolling */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.tm-content::-webkit-scrollbar {
+  /* Chrome/Safari/Edge (Chromium) */
+  display: none;
+  width: 0;
+  height: 0;
 }
 .tm-error {
   color: #fca5a5;
