@@ -28,8 +28,8 @@ export default function Login() {
         {view === 'choice' && (
           <div className="auth-wrap">
             <aside className="auth-actions">
-              <button className="btn" onClick={() => setView('login')}><p>Log in</p></button> {/* når knappen klickes, vises valgte "view */}
-              <button className="btn" onClick={() => setView('signup')}><p>Sign up</p></button>
+              <button className="btn" onClick={() => setView('login')}>Log in</button> {/* når knappen klickes, vises valgte "view */}
+              <button className="btn" onClick={() => setView('signup')}>Sign up</button>
             </aside>
           </div>
         )}
@@ -41,7 +41,7 @@ export default function Login() {
             <LoginForm onLogin={handleLogin} />
             <p className="auth-note">
               Ikke oprettet?{' '}
-                <button className="btn-inline" onClick={() => setView('signup')}><p>Opret konto</p></button>
+                <button className="btn-inline" onClick={() => setView('signup')}>Opret konto</button>
             </p>
           </>
         )}
@@ -52,7 +52,7 @@ export default function Login() {
             <Signup />
             <p className="auth-note">
               Allerede bruger?{' '}
-              <button className="btn-inline" onClick={() => setView('login')}><p>Login</p></button>
+              <button className="btn-inline" onClick={() => setView('login')}>Login</button>
             </p>
           </>
         )}

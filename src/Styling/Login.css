@@ -105,7 +105,7 @@ p, label, button{
 .btn {
   appearance: none; /* Fjerner standard knap styling */
   border: none;
-  background: #f9f9f9;
+  background: #ff512f;
   color: #1e1e1e;
   padding: 10px 25px; /* Plads omkring tekst */
   font-weight: 709;
@@ -120,11 +120,11 @@ p, label, button{
 .btn::before {
   content: "";
   position: absolute;
-  top: 6px;
-  left: 6px;
-  right: -6px;
-  bottom: -6px;
-  background: #ff5a1f;
+  top: -6px;
+  left: -6px;
+  right: 6px;
+  bottom: 6px;
+  background: #f9f9f9;
   z-index: -1;
 }
 
