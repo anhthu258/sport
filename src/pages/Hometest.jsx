@@ -10,6 +10,9 @@ export default function Hometest() {
             <a href="/MapAnker.html">Map</a>
           </li>
           <li>
+            <Link to="/testing-map">Testing Map (Mapbox)</Link>
+          </li>
+          <li>
             <Link to="/login">Login</Link>
           </li>
           <li>
