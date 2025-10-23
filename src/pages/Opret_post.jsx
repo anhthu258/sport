@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "../styling/Opret_post.css";
 import { serverTimestamp } from "firebase/firestore";
 import { db } from "../assets/firebase";
-import { collection, addDoc, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, getDoc, deleteDoc } from "firebase/firestore";
 
 export default function OpretPost() {
   // State for formularens input felter
@@ -69,6 +69,28 @@ export default function OpretPost() {
   async function handleSubmit(e) {
     e.preventDefault(); // Forhindrer at siden reloader
 
+
+
+    //Script til at slette alle gamle posts, hvis det er ældre end 24 timer
+
+//     const postsSnapshot = await getDocs(collection(db, "posts")); //fetcher alle posts
+//     const now = new Date(Date.now() - 24 * 60 * 60 *1000); //laver en konstant ud fra 24 timer
+
+//     postsSnapshot.forEach(async (postDoc) => {
+//     const postData = postDoc.data();
+     
+//     // Sørg for at der overhovedet er et timestamp
+//     if (postData.timestamp) {
+//     const postTime = postData.timestamp.toDate(); // Firestore timestamp → JS Date
+
+//     // Hvis postens tidspunkt er ældre end nu
+//     if (postTime < now) {
+//       await deleteDoc(doc(db, "posts", postDoc.id));
+//     }
+//   }
+// });
+
+
     // Valider at påkrævede felter er udfyldt
     if (!title || !sport || !location) {
       setMessage("Udfyld venligst titel, sportsgren og lokation");
@@ -103,7 +125,32 @@ export default function OpretPost() {
     setTime("");
     setDetails("");
     setSportsOptions([]);
+
+    //sletter de posts, der er fra i går
+    const postsSnapshot = await getDocs(collection(db, "posts")); //henter alle posts
+const today = new Date(); //konstant, der er baseret på den nuværende dato, klokkeslet mm
+
+postsSnapshot.docs.forEach(async (postDoc) => { //for hvert post
+  const postData = postDoc.data(); //opret postData
+
+  if (!postData.timestamp) return; //hvis den her data ikke har et timestamp, så ignorer det
+
+  const postTimestamp = postData.timestamp.toDate(); //konstant baseret på timestamp data på de aktuelle posts
+
+  // Sammenlign kun dato (ikke klokkeslæt)
+  const isFromAnotherDay =
+    postTimestamp.getDate() !== today.getDate() ||
+    postTimestamp.getMonth() !== today.getMonth() ||
+    postTimestamp.getFullYear() !== today.getFullYear(); //Hvis postens år, måned og dag ikke er det samme som idags, så = isFromAnotherDay
+
+  // Hvis opslaget er fra en tidligere dag => slet det
+  if (isFromAnotherDay) { //Hvis en post hører under "isFromAnotherDay", så slet
+    await deleteDoc(doc(db, "posts", postDoc.id));
+    console.log(`🗑️ Slettede gammelt opslag: ${postDoc.id}`);
+  }
+});
   } 
+
 
   // Render formularen med alle input felter
   return (
