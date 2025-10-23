@@ -14,14 +14,6 @@ export default function Signup() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  /**
-   * Håndterer submit af signup-formular
-   * - validerer felter
-   * - opretter bruger i Firebase Auth
-   * - gemmer profil i Firestore
-   * - gemmer timeline i Firestore
-   */
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');

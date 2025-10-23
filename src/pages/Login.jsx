@@ -3,12 +3,6 @@ import '../Styling/Login.css';
 import LoginForm from '../components/LoginForm';
 import Signup from './Signup';
 
-/*
- * Login-side der viser enten:
- * - valg (choice) mellem "Login" og "Sign up"
- * - selve login-formen
- * - signup-formen
- */
 export default function Login() {
   // 'view' styrer hvilken sektion der vises: 'choice' | 'login' | 'signup'
   const [view, setView] = useState('choice');
