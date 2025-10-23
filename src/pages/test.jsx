@@ -24,7 +24,7 @@ export default function Test() {
         open={open} // Om sheet er åben
         onClose={() => setOpen(false)} // Funktion der lukker sheet
         header={<div>DOKK1</div>} // Header titel
-        initialHeight={200} // Start højde i pixels
+        initialHeight={180} // Start højde i pixels - collapsed state
         maxHeightPercent={100} // Max højde som % af skærm
       >
         {/* Tom bottom sheet til test */}

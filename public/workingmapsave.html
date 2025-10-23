@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Guides</title>
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoiYW5rZXJkZXJiYW5rZXIiLCJhIjoiY204c2Y0MWR5MDN5bjJrczllNTE3MnhhaiJ9.7fSArYI9db041IbQE8iXgA";
+
+      // Aarhus boundaries (approximate)
+      const aarhusCenter = [10.2039, 56.1629]; // Longitude, Latitude of Aarhus
+      const aarhusMaxBounds = [
+        [10.05, 56.08], // Southwest coordinates
+        [10.35, 56.25], // Northeast coordinates
+      ];
+
+      const map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/ankerderbanker/cmgt7si7h000e01qucza3f2mo",
+        center: aarhusCenter, // Center on Aarhus
+        zoom: 11, // Zoom level to show city area
+        minZoom: 10, // Minimum zoom to prevent zooming out too far
+        maxZoom: 18, // Maximum zoom level
+        maxBounds: aarhusMaxBounds, // Restrict panning to Aarhus area
+      });
+
+      map.addControl(new mapboxgl.NavigationControl());
+      map.scrollZoom.enable(); // Re-enable scroll zoom for navigation within Aarhus
+
+      map.on("style.load", () => {
+        map.setFog({}); // Set the default atmosphere style
+      });
+    </script>
+  </body>
+</html>

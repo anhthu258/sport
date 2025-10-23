@@ -71,6 +71,7 @@ p, label, button{
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(6, 10, 20, 0.08);
   box-sizing: border-box;
+  margin-top: 12px;
 }
 
 .form-container .field {
@@ -100,24 +101,31 @@ p, label, button{
   box-shadow: 0 0 0 3px rgba(255, 76, 11, 0.08);
 }
 
-/* Signup tekst styling inden på login*/
-.signup-prompt {
-  margin-top: 12px;
-  text-align: center;
-  font-size: 14px;
-}
-
 /* Button styling */
 .btn {
-  width: 100%;
-  padding: 12px;
-  background: #ff512f;
-  color: #f9f9f9;
+  appearance: none; /* Fjerner standard knap styling */
   border: none;
-  border-radius: 10px;
-  font-weight: 700;
+  background: #ff512f;
+  color: #1e1e1e;
+  padding: 10px 25px; /* Plads omkring tekst */
+  font-weight: 709;
   font-size: 16px;
+  position: relative;
   cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+/* Orange firkant bag knappen - skal ligge under knappen */
+.btn::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: 6px;
+  bottom: 6px;
+  background: #f9f9f9;
+  z-index: -1;
 }
 
 /* Error besked styling */
@@ -127,6 +135,43 @@ p, label, button{
   font-size: 14px;
 }
 
+/* Sørg for view er centreret */
+.auth-wrap {
+  margin-top: 10vh;
+}
+
+.auth-panel {
+  width: 100%;
+  max-width: 380px;
+  padding: 20px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.auth-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-note {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.btn-inline {
+  display: inline-block;
+  padding: 6px 10px;
+  background: #ff512f;
+  color: #f9f9f9;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Responsive tweaks */
 @media (max-width: 420px) {
   .login-form {
     padding: 18px;
@@ -140,4 +185,6 @@ p, label, button{
     padding: 14px;
     font-size: 17px;
   }
+  .auth-panel { padding: 16px; }
+  .btn-inline { padding: 8px 12px; font-size: 15px; }
 }

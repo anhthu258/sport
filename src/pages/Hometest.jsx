@@ -10,6 +10,9 @@ export default function Hometest() {
             <a href="/MapAnker.html">Map</a>
           </li>
           <li>
+            <Link to="/testing-map">Testing Map (Mapbox)</Link>
+          </li>
+          <li>
             <Link to="/login">Login</Link>
           </li>
           <li>
@@ -20,6 +23,9 @@ export default function Hometest() {
           </li>
           <li>
             <Link to="/opretpost">Opret Post</Link>
+          </li>
+          <li>
+            <Link to="/filtertest">Filter Test</Link>
           </li>
         </ul>
       </nav>
