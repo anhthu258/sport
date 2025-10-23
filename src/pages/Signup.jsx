@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router';
 import { auth, db } from '../assets/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-
 export default function Signup() {
   const MAX_USERNAME = 25; // <-- maks længde for brugernavn
   const MIN_PASSWORD = 8; // <-- minimum længde for password
@@ -20,6 +19,7 @@ export default function Signup() {
    * - validerer felter
    * - opretter bruger i Firebase Auth
    * - gemmer profil i Firestore
+   * - gemmer timeline i Firestore
    */
 
   const handleSubmit = async (e) => {
@@ -45,25 +45,29 @@ export default function Signup() {
     }
 
     try {
-    // Opret bruger i Firebase Auth
+      // Opret bruger i Firebase Auth ved at genbruge auth fra src/assets/firebase
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCred.user;
 
-    // Opdatér displayName i auth-profil
+      // valgfrit: opdater displayName i Auth
       await updateProfile(user, { displayName: username });
 
-    // Gem brugerprofil i Firestore under collection 'profil'
+      // Gem brugerdata i Firestore under "profil" collection
       await setDoc(doc(db, 'profil', user.uid), {
         uid: user.uid,
         username,
         email,
+        createdAt: serverTimestamp(),
       });
 
-    // Naviger til login efter succesfuld signup
+      // naviger efter succes
       navigate('/login');
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Signup failed');
+      // make firebase error code more readable like template does
+      const raw = err?.code || err?.message || 'Signup failed';
+      const friendly = String(raw).replaceAll('-', ' ').replaceAll('auth/', '');
+      setError(friendly);
     }
   };
 

@@ -32,12 +32,10 @@ export default function Login() {
       <div className="auth-panel">
         {/* Choice-view: to store knapper der skifter view */}
         {view === 'choice' && (
-            <div className="auth-wrap">
                 <aside className="auth-actions">
-                <button className="btn" onClick={() => setView('login')}>Log in</button>
-                <button className="btn btn-secondary" onClick={() => setView('signup')}>Sign up</button>
+                  <button className="btn" onClick={() => setView('login')}><p>Log in</p></button> {/* når knappen klickes, vises valgte "view */}
+                  <button className="btn" onClick={() => setView('signup')}><p>Sign up</p></button>
                 </aside>
-            </div>
         )}
 
         {/* Login-view: viser LoginForm og link til signup */}
@@ -47,7 +45,7 @@ export default function Login() {
             <LoginForm onLogin={handleLogin} />
             <p className="auth-note">
               Ikke oprettet?{' '}
-                <button className="btn-inline" onClick={() => setView('signup')}>Opret konto</button>
+                <button className="btn-inline" onClick={() => setView('signup')}><p>Opret konto</p></button>
             </p>
           </>
         )}
@@ -58,7 +56,7 @@ export default function Login() {
             <Signup />
             <p className="auth-note">
               Allerede bruger?{' '}
-              <button className="btn-inline" onClick={() => setView('login')}>Login</button>
+              <button className="btn-inline" onClick={() => setView('login')}><p>Login</p></button>
             </p>
           </>
         )}
