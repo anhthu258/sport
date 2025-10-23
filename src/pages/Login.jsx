@@ -26,10 +26,12 @@ export default function Login() {
       <div className="auth-panel">
         {/* Choice-view: to store knapper der skifter view */}
         {view === 'choice' && (
-                <aside className="auth-actions">
-                  <button className="btn" onClick={() => setView('login')}><p>Log in</p></button> {/* når knappen klickes, vises valgte "view */}
-                  <button className="btn" onClick={() => setView('signup')}><p>Sign up</p></button>
-                </aside>
+          <div className="auth-wrap">
+            <aside className="auth-actions">
+              <button className="btn" onClick={() => setView('login')}><p>Log in</p></button> {/* når knappen klickes, vises valgte "view */}
+              <button className="btn" onClick={() => setView('signup')}><p>Sign up</p></button>
+            </aside>
+          </div>
         )}
 
         {/* Login-view: viser LoginForm og link til signup */}
