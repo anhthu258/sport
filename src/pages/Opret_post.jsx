@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import "../styling/Opret_post.css";
 import { serverTimestamp } from "firebase/firestore";
-import { db } from "../assets/firebase";
+import { db, auth } from "../assets/firebase";
 import { collection, addDoc, getDocs, doc, getDoc, deleteDoc } from "firebase/firestore";
 
 export default function OpretPost() {
@@ -24,15 +24,7 @@ export default function OpretPost() {
     // Async funktion der henter data fra Firestore
     async function fetchOptions() {
       try {
-        // Hent alle sportsgrene fra "sports" collection, ikke sådan den fungerer
-        // const sportsSnapshot = await getDocs(collection(db, "sports"));
-        // setSportsOptions(
-        // sportsSnapshot.docs.map((doc) => ({
-        // id: doc.id, // Dokument ID
-        // ...(doc.data() || {}), // Alle felter fra dokumentet (name, title, etc.)
-        // }))
-        // );
-
+      
         // Hent alle lokationer fra "hotspots" collection
         const locationsSnapshot = await getDocs(collection(db, "hotspots"));
         // Konverter Firestore dokumenter til JavaScript objekter
@@ -91,27 +83,14 @@ export default function OpretPost() {
   async function handleSubmit(e) {
     e.preventDefault(); // Forhindrer at siden reloader (standard form behavior)
 
+    const userDoc = await getDoc(doc(db, "profil", auth.currentUser.uid));
+    const user = auth.currentUser;
+    const userData = userDoc.data()
 
-
-    //Script til at slette alle gamle posts, hvis det er ældre end 24 timer
-
-//     const postsSnapshot = await getDocs(collection(db, "posts")); //fetcher alle posts
-//     const now = new Date(Date.now() - 24 * 60 * 60 *1000); //laver en konstant ud fra 24 timer
-
-//     postsSnapshot.forEach(async (postDoc) => {
-//     const postData = postDoc.data();
-     
-//     // Sørg for at der overhovedet er et timestamp
-//     if (postData.timestamp) {
-//     const postTime = postData.timestamp.toDate(); // Firestore timestamp → JS Date
-
-//     // Hvis postens tidspunkt er ældre end nu
-//     if (postTime < now) {
-//       await deleteDoc(doc(db, "posts", postDoc.id));
-//     }
-//   }
-// });
-
+    if(!user){
+        setMessage("Du kan ikke oprette opslag, uden at være logget ind");
+        return;
+    }
 
     // Valider at påkrævede felter er udfyldt
     // Tjek at de vigtigste felter ikke er tomme
@@ -133,7 +112,8 @@ export default function OpretPost() {
     // Gem opslaget i Firestore "posts" collection
     // Dette opretter et nyt dokument i "posts" collectionen
     await addDoc(collection(db, "posts"), {
-      creatorId: "BrugerID", // TODO: Erstat med rigtig bruger ID ???????? vi venter på race
+      creatorId: auth.currentUser.uid, 
+      userName: userData.username,
       hotspotId: location, // Reference til valgt lokation (Firestore dokument ID)
       title, // Postens titel (fra input felt)
       details, // Beskrivelse (fra textarea)

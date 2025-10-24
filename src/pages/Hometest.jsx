@@ -2,7 +2,7 @@ import { Link } from "react-router";
 
 export default function Hometest() {
   return (
-    <div>
+    <div className="hubben">
       <h1>Her er hubben</h1>
       <nav>
         <ul>
