@@ -107,39 +107,37 @@
   font-size: 18px;
 }
 
-/* Plus knap */
-.psu-plus-button {
+/* Plus billede */
+.psu-plus-image {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  background-color: #e67e22; /* Mere orange farve som i billedet */
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: contain;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-.psu-plus-button:hover {
-  background-color: #f39c12; /* Lysere orange ved hover */
+/* Mobile responsive styling */
+@media (max-width: 768px) {
+  .psu-plus-image {
+    width: 32px;
+    height: 32px;
+  }
+
+  .psu-header-title {
+    font-size: 16px;
+  }
+
+  .psu-header {
+    padding: 6px 12px 0 12px;
+  }
+}
+
+.psu-plus-image:hover {
   transform: scale(1.05);
 }
 
-.psu-plus-button:active {
+.psu-plus-image:active {
   transform: scale(0.95);
-}
-
-/* Plus ikon */
-.psu-plus-icon {
-  color: white;
-  font-size: 20px;
-  font-weight: bold;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Indholdsområde - scrollbar hovedindhold */
@@ -148,7 +146,7 @@
   color: white;
   overflow-y: auto; /* Kun vertikal scrolling som Google Maps */
   overflow-x: hidden; /* Ingen horizontal scrolling */
-  max-height: calc(100vh - 60px); /* Plads til header og handle */
+  max-height: calc(100vh - 120px); /* Mere plads til scrolling */
   scroll-behavior: smooth; /* Smooth scrolling */
   -webkit-overflow-scrolling: touch; /* Native smooth scroll på iOS */
   overscroll-behavior: contain; /* Forhindrer scroll chaining */
@@ -156,6 +154,32 @@
   pointer-events: auto; /* Tillad interaktion med indhold */
   transform: translateZ(0); /* Hardware acceleration uden zoom */
   -webkit-transform: translateZ(0); /* Safari hardware acceleration */
+  /* Fjern scrollbar visuelt men behold funktionalitet */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Når sheet er helt oppe, tillad fuld scrolling */
+.psu-sheet.at-top .psu-content {
+  max-height: calc(100vh - 80px); /* Mere plads når helt oppe */
+  overscroll-behavior: auto; /* Tillad normal scrolling */
+}
+
+.psu-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.psu-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.psu-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.psu-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 /* Forhindrer skalering af billeder og indhold */
@@ -168,4 +192,138 @@
   -webkit-transform: translateZ(0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+}
+
+/* Sportsgrene sektion */
+.psu-sports-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.psu-sports-title {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.psu-sports-icons {
+  display: flex;
+  gap: 8px;
+}
+
+.psu-sport-icon {
+  width: 24px;
+  height: 24px;
+  opacity: 0.8;
+}
+
+/* Activity cards */
+.psu-activity-card {
+  background: #2a2a2a;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.psu-activity-card.active {
+  background: #1a1a1a;
+}
+
+.psu-card-header {
+  background: #404040;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.psu-card-header.active {
+  background: #ff6b35;
+}
+
+.psu-active-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffd700;
+  box-shadow: 0 0 6px #ffd700;
+}
+
+.psu-card-content {
+  padding: 16px;
+  position: relative;
+}
+
+.psu-card-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.psu-card-title.orange {
+  color: #ff6b35;
+}
+
+.psu-card-description {
+  color: #cccccc;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.psu-card-tags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.psu-tag {
+  background: #555;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.psu-tag.orange {
+  background: #ff6b35;
+  color: white;
+}
+
+.psu-card-user {
+  color: #999;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.psu-card-stats {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.psu-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #999;
+  font-size: 12px;
+}
+
+.psu-stat-icon {
+  width: 16px;
+  height: 16px;
 }
