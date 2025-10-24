@@ -50,10 +50,11 @@ export default function Signup() {
         username,
         email,
         createdAt: serverTimestamp(),
+        password,
       });
 
       // naviger efter succes
-      navigate('/login');
+      navigate('/loginform');
     } catch (err) {
       console.error(err);
       // make firebase error code more readable like template does
