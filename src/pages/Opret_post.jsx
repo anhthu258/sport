@@ -172,7 +172,6 @@ postsSnapshot.docs.forEach(async (postDoc) => { //for hvert post
   // Hvis opslaget er fra en tidligere dag => slet det
   if (isFromAnotherDay) { //Hvis en post hører under "isFromAnotherDay", så slet
     await deleteDoc(doc(db, "posts", postDoc.id));
-    console.log(`🗑️ Slettede gammelt opslag: ${postDoc.id}`);
   }
 });
 
