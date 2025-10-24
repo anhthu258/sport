@@ -330,13 +330,13 @@ export default function PostSildeOp({
               <div className="psu-active-dot"></div>
             </div>
             <div className="psu-card-content">
-              <div className="psu-card-title">Vi er klar nu her</div>
+              <div className="psu-card-title orange">Vi er klar nu her</div>
               <div className="psu-card-description">
                 Vi er nogle gutter der gerne vil spille fodbold, Kom og vær med
+                ;)
               </div>
               <div className="psu-card-tags">
-                <span className="psu-tag">2v2</span>
-                <span className="psu-tag">hyggespil</span>
+                <span className="psu-tag">#Begynder</span>
               </div>
               <div className="psu-card-user">Anonym_ugle</div>
               <div className="psu-card-stats">
@@ -379,8 +379,7 @@ export default function PostSildeOp({
                 ;)
               </div>
               <div className="psu-card-tags">
-                <span className="psu-tag orange">#2v2</span>
-                <span className="psu-tag orange">#hygge</span>
+                <span className="psu-tag">#Begynder</span>
               </div>
               <div className="psu-card-user">Den_seje_and123</div>
               <div className="psu-card-stats">
@@ -420,8 +419,7 @@ export default function PostSildeOp({
               <div className="psu-card-title orange">Fodbold anyone?</div>
               <div className="psu-card-description">Kom og vær med ;)</div>
               <div className="psu-card-tags">
-                <span className="psu-tag orange">#4v4</span>
-                <span className="psu-tag orange">#hygge</span>
+                <span className="psu-tag">#Øvet</span>
               </div>
               <div className="psu-card-user">Den_seje_and123</div>
               <div className="psu-card-stats">

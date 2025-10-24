@@ -5,22 +5,7 @@
  * 
  * En avanceret bottom sheet komponent der opfører sig præcis som Google Maps.
  * Inkluderer drag funktionalitet, snap positioner, og smart scrolling.
- * 
- * Features:
- * - Drag to resize (Google Maps style)
- * - Three snap positions (collapsed, peek, full)
- * - Smart content scrolling when at top
- * - Touch optimized for mobile
- * - Sports activities display
- * 
- * CSS Struktur:
- * 1. Overlay container
- * 2. Bottom sheet
- * 3. Handle og header
- * 4. Content area med scrolling
- * 5. Activity cards
- * 6. Mobile responsive
- */
+
 
 /* ========================================
    OVERLAY CONTAINER - Dækker hele skærmen
@@ -131,7 +116,6 @@
 
 /* Header sektion - titel (f.eks. "DOKK1") */
 .psu-header {
-  padding: 8px 16px 0 16px; /* Padding omkring header */
   color: white; /* Hvid tekst */
   font-weight: 600; /* Fed skrift */
   font-size: 18px; /* Størrelse på titel */
@@ -142,42 +126,43 @@
   display: flex; /* Flexbox for side-ved-side layout */
   justify-content: space-between; /* Titel til venstre, knap til højre */
   align-items: center; /* Vertikal centrering */
+  padding: 0; /* Ingen padding */
+  gap: 8px; /* Meget lille mellemrum mellem DOKK1 og plus */
 }
 
 /* Header titel styling */
 .psu-header-title {
   color: white; /* Hvid tekst */
   font-weight: 600; /* Fed skrift */
-  font-size: 18px; /* Størrelse på titel */
+  font-size: 200px; /* Størrelse på titel */
+  margin-top: -80px; /* Ingen margin fra top */
+  margin-left: 30px;
+  font-family: "anton", sans-serif;
 }
 
 /* ========================================
    PLUS KNAP - Orange knap med plus ikon
    ======================================== */
 
-/* Plus billede - orange cirkel med plus ikon */
+/* Plus billede - orange cirkel med plus ikon - Mobile only */
 .psu-plus-image {
-  width: 36px; /* Størrelse på knap */
-  height: 36px;
+  width: 250px; /* Meget stor størrelse */
+  height: 200px;
   object-fit: contain; /* Bevar proportioner */
   cursor: pointer; /* Vis at det er klikbart */
   transition: all 0.2s ease; /* Smooth transitions */
+  margin-top: -80px; /* Ingen margin fra top */
+  margin-right: -70px; /* Ingen margin fra højre side - helt ude */
 }
 
-/* Mobile responsive styling */
-@media (max-width: 768px) {
-  .psu-plus-image {
-    width: 32px;
-    height: 32px;
-  }
+/* Header titel - Mobile størrelse */
+.psu-header-title {
+  font-size: 16px;
+}
 
-  .psu-header-title {
-    font-size: 16px;
-  }
-
-  .psu-header {
-    padding: 6px 12px 0 12px;
-  }
+/* Header padding - Mobile */
+.psu-header {
+  padding: 0;
 }
 
 .psu-plus-image:hover {
@@ -245,16 +230,17 @@
 /* Sportsgrene sektion */
 .psu-sports-section {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 20px;
   padding: 0 4px;
 }
 
 .psu-sports-title {
   color: white;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .psu-sports-icons {
@@ -263,9 +249,10 @@
 }
 
 .psu-sport-icon {
-  width: 24px;
-  height: 24px;
+  width: 80px; /* Mobile størrelse */
+  height: 80px;
   opacity: 0.8;
+  margin: 0 8px;
 }
 
 /* Activity cards */
