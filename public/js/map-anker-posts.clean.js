@@ -79,8 +79,9 @@ const map = new mapboxgl.Map({
   maxZoom: 18,
   // Use the tighter bounds derived from the start center
   maxBounds: START_BOUNDS,
+  attributionControl: false, // hide attribution + compact info button
 });
-map.addControl(new mapboxgl.NavigationControl());
+// Remove default zoom/compass UI; we keep our own Reset control
 map.scrollZoom.enable();
 map.on("style.load", () => map.setFog({}));
 
@@ -132,6 +133,22 @@ map.on("zoomend", () => {
     if (Math.abs(p) > 0.01) {
       map.easeTo({ pitch: 0, duration: 300, easing: (t) => t });
     }
+  }
+});
+
+// Notify parent (React app) when the user clicks the bare map background.
+// Marker clicks are handled on their own DOM elements and call stopPropagation,
+// so they won't trigger this handler. This lets the parent show a UI affordance
+// (like a reveal handle) only on true background taps.
+map.on("click", () => {
+  try {
+    const msg = { source: "map-anker", type: "backgroundTap" };
+    if (window.parent && window.parent !== window) {
+      // Same-origin in Vite dev/preview, safe to use current origin
+      window.parent.postMessage(msg, window.location.origin);
+    }
+  } catch (e) {
+    // no-op
   }
 });
 

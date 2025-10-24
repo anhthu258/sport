@@ -1,36 +1,73 @@
-/* Overlay container - dækker hele skærmen */
+/**
+ * ========================================
+ * POSTSILDEOP - GOOGLE MAPS STYLE BOTTOM SHEET
+ * ========================================
+ * 
+ * En avanceret bottom sheet komponent der opfører sig præcis som Google Maps.
+ * Inkluderer drag funktionalitet, snap positioner, og smart scrolling.
+ * 
+ * Features:
+ * - Drag to resize (Google Maps style)
+ * - Three snap positions (collapsed, peek, full)
+ * - Smart content scrolling when at top
+ * - Touch optimized for mobile
+ * - Sports activities display
+ * 
+ * CSS Struktur:
+ * 1. Overlay container
+ * 2. Bottom sheet
+ * 3. Handle og header
+ * 4. Content area med scrolling
+ * 5. Activity cards
+ * 6. Mobile responsive
+ */
+
+/* ========================================
+   OVERLAY CONTAINER - Dækker hele skærmen
+   ======================================== */
 .psu-overlay {
-  position: fixed;
-  inset: 0;
+  position: fixed; /* Fast positionering over alt indhold */
+  inset: 0; /* Dækker hele skærmen */
   display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
-  background: transparent;
-  z-index: 50;
+  justify-content: flex-end; /* Aligner til højre */
+  align-items: flex-end; /* Aligner til bunden */
+  background: transparent; /* Gennemsigtig baggrund */
+  z-index: 50; /* Høj z-index for at være over alt */
   touch-action: pan-y; /* Forhindrer zoom på mobile */
   -webkit-touch-callout: none; /* Forhindrer callout på iOS */
 }
 
-/* Backdrop - klik for at lukke sheet */
+/* ========================================
+   BACKDROP - Klik for at lukke sheet
+   ======================================== */
 .psu-backdrop {
-  position: absolute;
-  inset: 0;
-  background: transparent;
-  border: none;
+  position: absolute; /* Absolut positionering */
+  inset: 0; /* Dækker hele overlay */
+  background: transparent; /* Gennemsigtig - kun for klik detection */
+  border: none; /* Ingen border */
 }
 
-/* Bottom sheet - hovedcontainer med PNG tekstur - hele sheet er draggable */
+/* ========================================
+   BOTTOM SHEET - Hovedcontainer (draggable)
+   ======================================== */
 .psu-sheet {
-  position: relative;
-  width: 100%;
-  background-image: url(/img/dark-concret.png);
-  background-size: cover;
-  background-color: rgba(17, 17, 17, 0.05); /* Gennemsigtig mørk tone */
-  border-top-left-radius: 16px;
+  position: relative; /* Relativ positionering for child elements */
+  width: 100%; /* Fylder hele bredden */
+  background-color: #303030; /* Fast mørk grå baggrundsfarve */
+  border-top-left-radius: 16px; /* Afrundede hjørner øverst */
   border-top-right-radius: 16px;
-  box-shadow: none;
-  transition: height 40ms cubic-bezier(0.1, 0.9, 0.2, 1); /* Ekstra glidende animation */
-  overflow: hidden;
+  box-shadow: none; /* Ingen skygge for clean look */
+  transition: height 300ms cubic-bezier(0.4, 0, 0.2, 1); /* Google Maps style animation timing */
+}
+
+/* ========================================
+   DRAG STATES - Optimering for drag funktionalitet
+   ======================================== */
+
+/* Fjern transition under drag for præcis finger-følgning */
+.psu-sheet.dragging {
+  transition: none; /* Ingen transition under drag - følger fingeren præcis */
+  overflow: hidden; /* Skjul overflow under drag */
   /* Fjernet will-change for at forhindre zoom */
   overscroll-behavior: contain; /* Forhindrer scroll chaining */
   max-height: 100vh; /* Kan fylde hele skærmen som Google Maps */
@@ -40,16 +77,22 @@
   -webkit-touch-callout: none; /* Forhindrer callout menu på iOS */
   -webkit-user-select: none; /* Forhindrer tekst markering på iOS */
   -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
+  transform: translateZ(0); /* Hardware acceleration uden zoom */
+  -webkit-transform: translateZ(0); /* Safari hardware acceleration */
+  -webkit-backface-visibility: hidden; /* Forhindrer zoom på iOS */
+  backface-visibility: hidden; /* Forhindrer zoom */
 }
 
-/* Handle område - container for drag handle */
+/* ========================================
+   HANDLE AREA - Container for drag handle
+   ======================================== */
 .psu-handleArea {
-  width: 100%;
+  width: 100%; /* Fylder hele bredden */
   padding-top: 16px; /* Øget padding for lettere at ramme på iPhone */
   padding-bottom: 16px;
-  display: flex;
-  justify-content: center;
-  cursor: grab;
+  display: flex; /* Flexbox for centrering */
+  justify-content: center; /* Centrer handle */
+  cursor: grab; /* Vis at området kan trækkes */
   touch-action: none; /* Forhindrer touch gestures */
   user-select: none; /* Forhindrer tekst markering */
   -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
@@ -58,32 +101,91 @@
   background: transparent; /* Fjern debug background for smooth look */
 }
 
-/* Drag handle - lille grå streg man kan trække i */
+/* ========================================
+   DRAG HANDLE - Visuelt element for drag
+   ======================================== */
 .psu-handle {
   width: 50px; /* Bredere for iPhone touch */
   height: 8px; /* Højere for bedre synlighed på iPhone */
-  border-radius: 4px;
+  border-radius: 4px; /* Afrundede hjørner */
   background: #888; /* Lysere for bedre synlighed på iPhone */
-  cursor: grab;
-  transition: background-color 0.2s ease;
+  cursor: grab; /* Vis at elementet kan trækkes */
+  transition: background-color 0.2s ease; /* Smooth transition */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Shadow for bedre synlighed */
 }
 
+/* Hover state for drag handle */
 .psu-handle:hover {
   background: #888; /* Hover effekt */
 }
 
+/* Active state når man trækker */
 .psu-handle:active {
   background: #aaa; /* Active state */
-  cursor: grabbing;
+  cursor: grabbing; /* Vis at man trækker */
 }
+
+/* ========================================
+   HEADER SEKTION - Titel og plus knap
+   ======================================== */
 
 /* Header sektion - titel (f.eks. "DOKK1") */
 .psu-header {
-  padding: 8px 16px 0 16px;
-  color: white;
-  font-weight: 600;
-  font-size: 18px;
+  padding: 8px 16px 0 16px; /* Padding omkring header */
+  color: white; /* Hvid tekst */
+  font-weight: 600; /* Fed skrift */
+  font-size: 18px; /* Størrelse på titel */
+}
+
+/* Header indhold container - flexbox layout */
+.psu-header-content {
+  display: flex; /* Flexbox for side-ved-side layout */
+  justify-content: space-between; /* Titel til venstre, knap til højre */
+  align-items: center; /* Vertikal centrering */
+}
+
+/* Header titel styling */
+.psu-header-title {
+  color: white; /* Hvid tekst */
+  font-weight: 600; /* Fed skrift */
+  font-size: 18px; /* Størrelse på titel */
+}
+
+/* ========================================
+   PLUS KNAP - Orange knap med plus ikon
+   ======================================== */
+
+/* Plus billede - orange cirkel med plus ikon */
+.psu-plus-image {
+  width: 36px; /* Størrelse på knap */
+  height: 36px;
+  object-fit: contain; /* Bevar proportioner */
+  cursor: pointer; /* Vis at det er klikbart */
+  transition: all 0.2s ease; /* Smooth transitions */
+}
+
+/* Mobile responsive styling */
+@media (max-width: 768px) {
+  .psu-plus-image {
+    width: 32px;
+    height: 32px;
+  }
+
+  .psu-header-title {
+    font-size: 16px;
+  }
+
+  .psu-header {
+    padding: 6px 12px 0 12px;
+  }
+}
+
+.psu-plus-image:hover {
+  transform: scale(1.05);
+}
+
+.psu-plus-image:active {
+  transform: scale(0.95);
 }
 
 /* Indholdsområde - scrollbar hovedindhold */
@@ -92,10 +194,184 @@
   color: white;
   overflow-y: auto; /* Kun vertikal scrolling som Google Maps */
   overflow-x: hidden; /* Ingen horizontal scrolling */
-  max-height: calc(100vh - 60px); /* Plads til header og handle */
+  max-height: calc(100vh - 120px); /* Mere plads til scrolling */
   scroll-behavior: smooth; /* Smooth scrolling */
   -webkit-overflow-scrolling: touch; /* Native smooth scroll på iOS */
   overscroll-behavior: contain; /* Forhindrer scroll chaining */
   -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
   pointer-events: auto; /* Tillad interaktion med indhold */
+  transform: translateZ(0); /* Hardware acceleration uden zoom */
+  -webkit-transform: translateZ(0); /* Safari hardware acceleration */
+  /* Fjern scrollbar visuelt men behold funktionalitet */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Når sheet er helt oppe, tillad fuld scrolling */
+.psu-sheet.at-top .psu-content {
+  max-height: calc(100vh - 80px); /* Mere plads når helt oppe */
+  overscroll-behavior: auto; /* Tillad normal scrolling */
+}
+
+.psu-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.psu-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.psu-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.psu-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Forhindrer skalering af billeder og indhold */
+.psu-content img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain; /* Forhindrer over-skaling */
+  object-position: center;
+  transform: translateZ(0); /* Hardware acceleration */
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Sportsgrene sektion */
+.psu-sports-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.psu-sports-title {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.psu-sports-icons {
+  display: flex;
+  gap: 8px;
+}
+
+.psu-sport-icon {
+  width: 24px;
+  height: 24px;
+  opacity: 0.8;
+}
+
+/* Activity cards */
+.psu-activity-card {
+  background: #2a2a2a;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.psu-activity-card.active {
+  background: #1a1a1a;
+}
+
+.psu-card-header {
+  background: #404040;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.psu-card-header.active {
+  background: #ff6b35;
+}
+
+.psu-active-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffd700;
+  box-shadow: 0 0 6px #ffd700;
+}
+
+.psu-card-content {
+  padding: 16px;
+  position: relative;
+}
+
+.psu-card-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.psu-card-title.orange {
+  color: #ff6b35;
+}
+
+.psu-card-description {
+  color: #cccccc;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.psu-card-tags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.psu-tag {
+  background: #555;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.psu-tag.orange {
+  background: #ff6b35;
+  color: white;
+}
+
+.psu-card-user {
+  color: #999;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.psu-card-stats {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.psu-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #999;
+  font-size: 12px;
+}
+
+.psu-stat-icon {
+  width: 16px;
+  height: 16px;
 }

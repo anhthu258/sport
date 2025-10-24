@@ -6,10 +6,13 @@ import { collection, getDocs } from "firebase/firestore";
 
 export default function TestingMAPSTUFFPage() {
   const containerRef = useRef(null);
+  const frameRef = useRef(null);
   const panelRef = useRef(null);
   const carouselRef = useRef(null);
   const slidesRef = useRef(null);
   const GAP = 12; // keep in sync with CSS gap
+  const HANDLE_WIDTH = 40; // keep in sync with CSS .tm-reveal-handle width
+  const HANDLE_MARGIN = 12;
   const [panelX, setPanelX] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -57,8 +60,25 @@ export default function TestingMAPSTUFFPage() {
   const clamp = (v) => Math.min(0, Math.max(-width(), v));
   const minSwipe = 50;
 
+  const isHidden = () => Math.abs(panelX) >= width() - 1;
+
   // Drag handle events
+  // Attach global listeners so dragging continues even if the pointer leaves the handle
+  const attachWindowDrag = () => {
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+  };
+  const detachWindowDrag = () => {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onCancel);
+  };
+
   const onDown = (e) => {
+    try {
+      e.preventDefault();
+    } catch {}
     if (e.pointerType === "mouse" && e.button !== 0) return;
     drag.current = { startX: e.clientX, panelAtStart: panelX, id: e.pointerId };
     try {
@@ -67,6 +87,7 @@ export default function TestingMAPSTUFFPage() {
       /* ignore */
     }
     setDragging(true);
+    attachWindowDrag();
   };
   const onMove = (e) => {
     if (!dragging) return;
@@ -81,8 +102,12 @@ export default function TestingMAPSTUFFPage() {
     else if (-dx > minSwipe) setPanelX(0);
     else setPanelX(Math.abs(panelX) > width() / 2 ? -width() : 0);
     setDragging(false);
+    detachWindowDrag();
   };
-  const onCancel = () => setDragging(false);
+  const onCancel = () => {
+    setDragging(false);
+    detachWindowDrag();
+  };
 
   // Measure carousel height so the map handle starts below it
   useEffect(() => {
@@ -94,6 +119,9 @@ export default function TestingMAPSTUFFPage() {
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
+
+  // No tap-to-reveal behavior; the reveal handle is permanently available
+  // whenever the panel is fully hidden.
 
   // Track active slide based on horizontal scroll position
   useEffect(() => {
@@ -212,6 +240,17 @@ export default function TestingMAPSTUFFPage() {
     }
   };
 
+  // Compute left position for the reveal tab so it follows the panel edge
+  const revealLeft = (() => {
+    const w = width();
+    const panelRightEdge = w + panelX; // panel's right edge in viewport px
+    const minLeft = HANDLE_MARGIN;
+    const maxLeft = w - (HANDLE_WIDTH + HANDLE_MARGIN);
+    // Place handle centered on the edge, clamped to viewport
+    const desired = panelRightEdge - HANDLE_WIDTH / 2;
+    return Math.max(minLeft, Math.min(maxLeft, desired));
+  })();
+
   return (
     <div ref={containerRef} className="tm-root">
       <iframe
@@ -219,6 +258,7 @@ export default function TestingMAPSTUFFPage() {
         src="/MapAnker.html"
         className="tm-map-frame"
         allow="geolocation; fullscreen"
+        ref={frameRef}
       />
 
       <div
@@ -354,6 +394,25 @@ export default function TestingMAPSTUFFPage() {
         style={{ "--handle-top": `${handleTop}px` }}
         aria-label="Drag to reveal map"
       />
+
+      {/* Left-edge on-demand reveal handle over the map */}
+      {panelX < 0 && (
+        <button
+          className="tm-reveal-handle"
+          aria-label="Vis Discover-panelet"
+          type="button"
+          style={{ left: `${revealLeft}px` }}
+          onPointerDown={(e) => {
+            // Allow drag-to-open starting from the handle
+            onDown(e);
+          }}
+          onPointerMove={onMove}
+          onPointerUp={onUp}
+          onPointerCancel={onCancel}
+        >
+          <span className="tm-reveal-arrow">›</span>
+        </button>
+      )}
     </div>
   );
 }
