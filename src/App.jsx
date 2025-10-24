@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import Hometest from "./pages/Hometest.jsx";
 
 import Login from "./pages/Login.jsx";
+import LoginForm from "./components/LoginForm.jsx";
 import OpretPost from "./pages/Opret_post.jsx";
 import Signup from "./pages/Signup.jsx";
 import Filtertest from "./pages/Filtertest.jsx";
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/filtertest" element={<Filtertest />} />
         <Route path="/test" element={<Test />} />
         <Route path="/testing-map" element={<TestingMAPSTUFFPage />} />
+        <Route path="/login-form" element={<LoginForm />} />
         {/* Removed alias to avoid duplicate paths */}
         {/* Optional: simple 404 without redirect */}
         <Route

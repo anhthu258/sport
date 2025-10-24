@@ -1,22 +1,50 @@
+/*
+===============================================================================
+TestingMAPSTUFFPage – Map iframe + Discover overlay
+-------------------------------------------------------------------------------
+Layers
+- Map layer: an iframe pointing to /MapAnker.html (Mapbox GL + Firestore).
+- UI layer: a Discover-style panel rendered in React above the iframe.
+
+Panel behavior
+- panelX drives the panel's X translation via CSS var --panel-x (px).
+  0 => panel fully open, -width() => fully hidden.
+- Right-side invisible gutter (.tm-handle) starts below the carousel; drag it
+  horizontally to hide/reveal the panel.
+- When hidden (panelX < 0), a left-side tab (.tm-reveal-handle) appears over
+  the map and follows the panel's right edge; you can drag it to bring the
+  panel back.
+
+Carousel behavior
+- Horizontal scroll with snap points; desktop drag converts pointer movement
+  into scroll. Dots/buttons jump to specific slides.
+
+Data
+- Posts are fetched once from Firestore (db -> posts collection). The list
+  can be filtered by sport using the Filter component.
+===============================================================================
+*/
 import { useEffect, useRef, useState, useMemo } from "react";
 import "../Styling/TestingMAPSTUFF.css";
 import Filter from "../components/Filter.jsx";
 import { db } from "../assets/firebase.js";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
 
 export default function TestingMAPSTUFFPage() {
+  // --- Refs to DOM elements we measure or control ---
   const containerRef = useRef(null);
   const frameRef = useRef(null);
   const panelRef = useRef(null);
   const carouselRef = useRef(null);
   const slidesRef = useRef(null);
-  const GAP = 12; // keep in sync with CSS gap
+  const GAP = 12; // keep in sync with CSS gap for .tm-slides
   const HANDLE_WIDTH = 40; // keep in sync with CSS .tm-reveal-handle width
   const HANDLE_MARGIN = 12;
-  const [panelX, setPanelX] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [handleTop, setHandleTop] = useState(0);
+  // --- UI/gesture state ---
+  const [panelX, setPanelX] = useState(0); // panel translateX in px
+  const [dragging, setDragging] = useState(false); // true while dragging panel
+  const [activeSlide, setActiveSlide] = useState(0); // current carousel index
+  const [handleTop, setHandleTop] = useState(0); // gutter starts below carousel
   const [selectedSport, setSelectedSport] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -56,13 +84,14 @@ export default function TestingMAPSTUFFPage() {
     },
   ];
 
-  const width = () => containerRef.current?.clientWidth || window.innerWidth;
-  const clamp = (v) => Math.min(0, Math.max(-width(), v));
-  const minSwipe = 50;
+  // --- Geometry helpers ---
+  const width = () => containerRef.current?.clientWidth || window.innerWidth; // container width
+  const clamp = (v) => Math.min(0, Math.max(-width(), v)); // bound panel in [-W, 0]
+  const minSwipe = 50; // px threshold for open/close decision
 
-  const isHidden = () => Math.abs(panelX) >= width() - 1;
+  const isHidden = () => Math.abs(panelX) >= width() - 1; // treat as fully hidden
 
-  // Drag handle events
+  // --- Drag handle events ---
   // Attach global listeners so dragging continues even if the pointer leaves the handle
   const attachWindowDrag = () => {
     window.addEventListener("pointermove", onMove);
@@ -76,6 +105,7 @@ export default function TestingMAPSTUFFPage() {
   };
 
   const onDown = (e) => {
+    // Begin a panel drag either from the right gutter or the left reveal tab
     try {
       e.preventDefault();
     } catch {}
@@ -90,12 +120,14 @@ export default function TestingMAPSTUFFPage() {
     attachWindowDrag();
   };
   const onMove = (e) => {
+    // Update panel position while dragging
     if (!dragging) return;
     if (e.pointerType === "mouse" && e.buttons === 0) return;
     const dx = e.clientX - drag.current.startX;
     setPanelX(clamp(drag.current.panelAtStart + dx));
   };
   const onUp = () => {
+    // Settle panel open/closed based on swipe distance or midpoint
     if (!dragging) return;
     const dx = drag.current ? drag.current.panelAtStart - panelX : 0;
     if (-dx < -minSwipe) setPanelX(-width());
@@ -109,7 +141,7 @@ export default function TestingMAPSTUFFPage() {
     detachWindowDrag();
   };
 
-  // Measure carousel height so the map handle starts below it
+  // Measure carousel height so the right drag gutter starts below it
   useEffect(() => {
     const update = () => {
       const h = carouselRef.current?.offsetHeight || 0;
@@ -137,25 +169,28 @@ export default function TestingMAPSTUFFPage() {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Load posts once
+  // LIVE UPDATES: Subscribe to Firestore 'posts' collection in realtime
+  // - onSnapshot attaches a listener that fires immediately with the current
+  //   documents and again on every change (add/update/delete).
+  // - We map the snapshot to a simple array of post objects and set local state.
+  // - The unsubscribe function returned by onSnapshot is called on unmount to
+  //   avoid memory leaks.
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoadingPosts(true);
-        const snap = await getDocs(collection(db, "posts"));
+    setLoadingPosts(true);
+    const unsubscribe = onSnapshot(
+      collection(db, "posts"),
+      (snap) => {
         const list = snap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
-        if (!cancelled) setPosts(list);
-      } catch (err) {
-        console.error("Failed to load posts", err);
-        if (!cancelled) setPostsError("Kunne ikke hente opslag");
-      } finally {
-        if (!cancelled) setLoadingPosts(false);
+        setPosts(list);
+        setLoadingPosts(false);
+      },
+      (err) => {
+        console.error("Firestore onSnapshot(posts) failed", err);
+        setPostsError("Kunne ikke hente opslag");
+        setLoadingPosts(false);
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    );
+    return () => unsubscribe();
   }, []);
 
   // Derive filtered posts by sport
@@ -164,7 +199,7 @@ export default function TestingMAPSTUFFPage() {
     return posts.filter((p) => (p.sport || "").toString() === selectedSport);
   }, [posts, selectedSport]);
 
-  // Desktop drag-to-scroll for the carousel
+  // Desktop drag-to-scroll for the carousel (touch swipe already works)
   const onCarDown = (e) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
     e.stopPropagation();
@@ -253,6 +288,7 @@ export default function TestingMAPSTUFFPage() {
 
   return (
     <div ref={containerRef} className="tm-root">
+      {/* Map layer (iframe) */}
       <iframe
         title="MapAnker"
         src="/MapAnker.html"
@@ -261,6 +297,7 @@ export default function TestingMAPSTUFFPage() {
         ref={frameRef}
       />
 
+      {/* Overlayed Discover panel */}
       <div
         ref={panelRef}
         className={`tm-panel${dragging ? " dragging" : ""}`}
@@ -385,6 +422,7 @@ export default function TestingMAPSTUFFPage() {
         </div>
       </div>
 
+      {/* Right-side gutter used to drag the panel */}
       <div
         onPointerDown={onDown}
         onPointerMove={onMove}
@@ -395,7 +433,7 @@ export default function TestingMAPSTUFFPage() {
         aria-label="Drag to reveal map"
       />
 
-      {/* Left-edge on-demand reveal handle over the map */}
+      {/* Left-edge reveal tab that follows the panel edge when hidden */}
       {panelX < 0 && (
         <button
           className="tm-reveal-handle"
