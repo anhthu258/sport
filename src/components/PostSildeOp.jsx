@@ -208,9 +208,11 @@ export default function PostSildeOp({
           <div className="psu-header">
             <div className="psu-header-content">
               <span className="psu-header-title">{header}</span>
-              <button className="psu-plus-button" aria-label="Tilføj">
-                <span className="psu-plus-icon">+</span>
-              </button>
+              <img 
+                src="/img/plus.png" 
+                alt="Tilføj" 
+                className="psu-plus-image"
+              />
             </div>
           </div>
         ) : null}
