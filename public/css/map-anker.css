@@ -12,6 +12,13 @@ body {
   width: 100%;
 }
 
+/* Hide Mapbox UI elements we don't want visible in this demo */
+.mapboxgl-ctrl-logo,
+.mapboxgl-ctrl-attrib,
+.mapbox-improve-map {
+  display: none !important;
+}
+
 /* Marker + Pin styles */
 .marker {
   display: flex;
