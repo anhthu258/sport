@@ -18,6 +18,7 @@ export default function PostSildeOp({
   // State for sheet højde og drag status
   const [height, setHeight] = useState(initialHeight); // Aktuel højde af bottom sheet
   const [isDragging, setIsDragging] = useState(false); // Om brugeren trækker i sheet lige nu
+  const [isAtTop, setIsAtTop] = useState(false); // Om sheet er helt oppe
 
   // Utility funktion til at begrænse værdi mellem min og max
   // Eksempel: clamp(150, 100, 200) = 150, clamp(50, 100, 200) = 100, clamp(250, 100, 200) = 200
@@ -40,6 +41,13 @@ export default function PostSildeOp({
     setHeight((h) => clamp(h || initialHeight, minHeight, maxH)); // Sæt højde mellem min og max
   }, [open, getMaxHeight, initialHeight]);
 
+  // Detekter når sheet er helt oppe
+  useEffect(() => {
+    const maxH = getMaxHeight();
+    const threshold = maxH * 0.95; // 95% af max højde
+    setIsAtTop(height >= threshold);
+  }, [height, getMaxHeight]);
+
   // Lytter efter Escape tast for at lukke sheet
   // Brugeren kan trykke Escape for at lukke sheet'en
   useEffect(() => {
@@ -58,6 +66,10 @@ export default function PostSildeOp({
     startYRef.current = clientY; // Gem hvor brugeren startede at trække (Y position)
     startHeightRef.current = height; // Gem sheet højde da drag startede
     document.body.style.userSelect = "none"; // Forhindrer tekst markering under drag
+
+    // Google Maps style: forhindrer zoom og scrolling under drag
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
   };
 
   // Håndterer start af drag - tillad drag fra hele bottom sheet
@@ -65,6 +77,11 @@ export default function PostSildeOp({
   const onPointerDown = (e) => {
     // Tillad drag fra hele bottom sheet, ikke kun handle området
     if (!e.target.closest(".psu-sheet")) return; // Hvis ikke klik på sheet, gør intet
+
+    // Hvis sheet er helt oppe og brugeren klikker på indhold, tillad scrolling
+    if (isAtTop && e.target.closest(".psu-content")) {
+      return; // Tillad normal scrolling i indhold
+    }
 
     // Forhindrer zoom på mobile
     e.preventDefault(); // Forhindrer standard touch behavior
@@ -81,7 +98,7 @@ export default function PostSildeOp({
     beginDrag(clientY); // Start drag operation
   };
 
-  // Håndterer drag bevægelse - opdaterer højde i real-time med requestAnimationFrame
+  // Håndterer drag bevægelse - følger fingeren præcis i real-time
   // Kaldes når brugeren trækker fingeren/musen mens de holder nede
   const onPointerMove = (e) => {
     if (!isDragging) return; // Hvis vi ikke trækker, gør intet
@@ -91,11 +108,9 @@ export default function PostSildeOp({
     // Positiv delta = træk op (øg højde), negativ delta = træk ned (mindsk højde)
     const maxH = getMaxHeight(); // Hent maksimal højde
 
-    // Ekstra glidende sensitivity for ultra smooth drag
-    const sensitivity = 1.8; // Højere følsomhed for ekstra glidende følelse
-    const adjustedDelta = delta * sensitivity; // Gør drag mere følsomt
+    // Direkte følsomhed - følger fingeren præcis
     const newHeight = clamp(
-      startHeightRef.current + adjustedDelta, // Start højde + bevægelse
+      startHeightRef.current + delta, // Start højde + direkte bevægelse
       minHeight, // Minimum højde (collapsed)
       maxH // Maksimal højde (fuldt åben)
     );
@@ -104,28 +119,41 @@ export default function PostSildeOp({
     e.preventDefault(); // Forhindrer scrolling
     e.stopPropagation(); // Forhindrer event bubbling
 
-    // requestAnimationFrame for ekstra smooth animation
-    requestAnimationFrame(() => {
-      setHeight(newHeight); // Opdater sheet højde
-    });
+    // Direkte opdatering - ingen requestAnimationFrame delay
+    setHeight(newHeight); // Opdater sheet højde øjeblikkeligt
   };
 
-  // Håndterer slutning af drag - snap til kun to positioner som Google Maps
+  // Håndterer slutning af drag - snap til tre positioner som Google Maps
   // Kaldes når brugeren slipper fingeren/musen
   const onPointerUp = () => {
     if (!isDragging) return; // Hvis vi ikke trækker, gør intet
     setIsDragging(false); // Marker at vi ikke længere trækker
     document.body.style.userSelect = ""; // Gendan tekst markering
 
-    // Google Maps style: kun to positioner - collapsed eller fuldt åben
+    // Google Maps style: gendan normal scrolling
+    document.body.style.overflow = "";
+    document.body.style.touchAction = "";
+
+    // Google Maps style: tre positioner - collapsed, peek, og fuldt åben
     const maxH = getMaxHeight(); // Hent maksimal højde
     const current = height; // Nuværende højde
-    const threshold = (minHeight + maxH) / 2; // Midtpunkt mellem de to positioner
 
-    // Bestem hvilken position sheet skal snappe til
-    let target = current < threshold ? minHeight : maxH; // Kun collapsed eller fuldt åben
+    // Beregn tre snap positioner som Google Maps
+    const collapsedHeight = minHeight; // 180px - kun handle synlig
+    const peekHeight = Math.min(300, maxH * 0.4); // 40% af max eller 300px - delvis synlig
+    const fullHeight = maxH; // 100% - fuldt åben
 
-    // Smooth snap animation
+    // Bestem hvilken position sheet skal snappe til baseret på nuværende højde
+    let target;
+    if (current < (collapsedHeight + peekHeight) / 2) {
+      target = collapsedHeight; // Snap til collapsed
+    } else if (current < (peekHeight + fullHeight) / 2) {
+      target = peekHeight; // Snap til peek
+    } else {
+      target = fullHeight; // Snap til fuldt åben
+    }
+
+    // Smooth snap animation med Google Maps timing
     requestAnimationFrame(() => {
       setHeight(target); // Snap til den valgte position
     });
@@ -175,7 +203,9 @@ export default function PostSildeOp({
       {/* Bottom sheet med dynamisk højde - hele sheet er draggable */}
       <div
         ref={sheetRef}
-        className="psu-sheet"
+        className={`psu-sheet ${isDragging ? "dragging" : ""} ${
+          isAtTop ? "at-top" : ""
+        }`}
         style={{ height }}
         onMouseDown={onPointerDown}
         onTouchStart={onPointerDown}
@@ -189,10 +219,256 @@ export default function PostSildeOp({
         </div>
 
         {/* Header indhold (f.eks. "DOKK1") */}
-        {header ? <div className="psu-header">{header}</div> : null}
+        {header ? (
+          <div className="psu-header">
+            <div className="psu-header-content">
+              <span className="psu-header-title">{header}</span>
+              <img
+                src="/img/plus.png"
+                alt="Tilføj"
+                className="psu-plus-image"
+              />
+            </div>
+          </div>
+        ) : null}
 
         {/* Hovedindhold - ikke draggable */}
-        <div className="psu-content">{children}</div>
+        <div className="psu-content">
+          {/* Sportsgrene sektion */}
+          <div className="psu-sports-section">
+            <div className="psu-sports-title">Sportsgrene</div>
+            <div className="psu-sports-icons">
+              <img
+                src="/img/basketball-white.png"
+                alt="Basketball"
+                className="psu-sport-icon"
+              />
+              <img
+                src="/img/fodbold-white.png"
+                alt="Fodbold"
+                className="psu-sport-icon"
+              />
+            </div>
+          </div>
+
+          {/* Aktiv nu kort */}
+          <div className="psu-activity-card active">
+            <div className="psu-card-header active">
+              <span>Aktiv nu</span>
+              <div className="psu-active-dot"></div>
+            </div>
+            <div className="psu-card-content">
+              <div className="psu-card-title">Vi er klar nu her</div>
+              <div className="psu-card-description">
+                Vi er nogle gutter der gerne vil spille fodbold, Kom og vær med
+                ;)
+              </div>
+              <div className="psu-card-tags">
+                <span className="psu-tag">2v2</span>
+                <span className="psu-tag">hyggespil</span>
+              </div>
+              <div className="psu-card-user">Anonym_ugle</div>
+              <div className="psu-card-stats">
+                <div className="psu-stat">
+                  <img
+                    src="/img/fodbold-white.png"
+                    alt="Fodbold"
+                    className="psu-stat-icon"
+                  />
+                </div>
+                <div className="psu-stat">
+                  <img
+                    src="/img/star-orange.png"
+                    alt="Star"
+                    className="psu-stat-icon"
+                  />
+                  <span>2 interesseret</span>
+                </div>
+                <div className="psu-stat">
+                  <img
+                    src="/img/check-white.png"
+                    alt="Participants"
+                    className="psu-stat-icon"
+                  />
+                  <span>3 deltager</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 17:30 kort */}
+          <div className="psu-activity-card">
+            <div className="psu-card-header">
+              <span>17:30</span>
+            </div>
+            <div className="psu-card-content">
+              <div className="psu-card-title orange">Basket anyone?</div>
+              <div className="psu-card-description">
+                Vi er nogle gutter der gerne vil spille basket, Kom og vær med
+                ;)
+              </div>
+              <div className="psu-card-tags">
+                <span className="psu-tag orange">#2v2</span>
+                <span className="psu-tag orange">#hygge</span>
+              </div>
+              <div className="psu-card-user">Den_seje_and123</div>
+              <div className="psu-card-stats">
+                <div className="psu-stat">
+                  <img
+                    src="/img/basketball-white.png"
+                    alt="Basketball"
+                    className="psu-stat-icon"
+                  />
+                </div>
+                <div className="psu-stat">
+                  <img
+                    src="/img/star-orange.png"
+                    alt="Star"
+                    className="psu-stat-icon"
+                  />
+                  <span>3 interesseret</span>
+                </div>
+                <div className="psu-stat">
+                  <img
+                    src="/img/check-white.png"
+                    alt="Participants"
+                    className="psu-stat-icon"
+                  />
+                  <span>2 deltager</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 18:00 kort */}
+          <div className="psu-activity-card">
+            <div className="psu-card-header">
+              <span>18:00</span>
+            </div>
+            <div className="psu-card-content">
+              <div className="psu-card-title orange">Fodbold anyone?</div>
+              <div className="psu-card-description">Kom og vær med ;)</div>
+              <div className="psu-card-tags">
+                <span className="psu-tag orange">#4v4</span>
+                <span className="psu-tag orange">#hygge</span>
+              </div>
+              <div className="psu-card-user">Den_seje_and123</div>
+              <div className="psu-card-stats">
+                <div className="psu-stat">
+                  <img
+                    src="/img/fodbold-white.png"
+                    alt="Fodbold"
+                    className="psu-stat-icon"
+                  />
+                </div>
+                <div className="psu-stat">
+                  <img
+                    src="/img/star-orange.png"
+                    alt="Star"
+                    className="psu-stat-icon"
+                  />
+                  <span>5 interesseret</span>
+                </div>
+                <div className="psu-stat">
+                  <img
+                    src="/img/check-white.png"
+                    alt="Participants"
+                    className="psu-stat-icon"
+                  />
+                  <span>3 deltager</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 19:00 kort */}
+          <div className="psu-activity-card">
+            <div className="psu-card-header">
+              <span>19:00</span>
+            </div>
+            <div className="psu-card-content">
+              <div className="psu-card-title orange">Tennis anyone?</div>
+              <div className="psu-card-description">
+                Vi spiller tennis på banerne, kom med!
+              </div>
+              <div className="psu-card-tags">
+                <span className="psu-tag orange">#singles</span>
+                <span className="psu-tag orange">#tennis</span>
+              </div>
+              <div className="psu-card-user">Tennis_pro</div>
+              <div className="psu-card-stats">
+                <div className="psu-stat">
+                  <img
+                    src="/img/tennis-white.png"
+                    alt="Tennis"
+                    className="psu-stat-icon"
+                  />
+                </div>
+                <div className="psu-stat">
+                  <img
+                    src="/img/star-orange.png"
+                    alt="Star"
+                    className="psu-stat-icon"
+                  />
+                  <span>4 interesseret</span>
+                </div>
+                <div className="psu-stat">
+                  <img
+                    src="/img/check-white.png"
+                    alt="Participants"
+                    className="psu-stat-icon"
+                  />
+                  <span>2 deltager</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 20:00 kort */}
+          <div className="psu-activity-card">
+            <div className="psu-card-header">
+              <span>20:00</span>
+            </div>
+            <div className="psu-card-content">
+              <div className="psu-card-title orange">Volleyball anyone?</div>
+              <div className="psu-card-description">
+                Beach volleyball på stranden, kom og vær med!
+              </div>
+              <div className="psu-card-tags">
+                <span className="psu-tag orange">#6v6</span>
+                <span className="psu-tag orange">#beach</span>
+              </div>
+              <div className="psu-card-user">Beach_volley</div>
+              <div className="psu-card-stats">
+                <div className="psu-stat">
+                  <img
+                    src="/img/volley-white.png"
+                    alt="Volleyball"
+                    className="psu-stat-icon"
+                  />
+                </div>
+                <div className="psu-stat">
+                  <img
+                    src="/img/star-orange.png"
+                    alt="Star"
+                    className="psu-stat-icon"
+                  />
+                  <span>8 interesseret</span>
+                </div>
+                <div className="psu-stat">
+                  <img
+                    src="/img/check-white.png"
+                    alt="Participants"
+                    className="psu-stat-icon"
+                  />
+                  <span>6 deltager</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {children}
+        </div>
       </div>
     </div>
   );

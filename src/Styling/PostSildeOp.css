@@ -23,13 +23,16 @@
 .psu-sheet {
   position: relative;
   width: 100%;
-  background-image: url(/img/dark-concret.png);
-  background-size: cover;
-  background-color: rgba(17, 17, 17, 0.05); /* Gennemsigtig mørk tone */
+  background-color: #303030; /* Fast baggrundsfarve */
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   box-shadow: none;
-  transition: height 40ms cubic-bezier(0.1, 0.9, 0.2, 1); /* Ekstra glidende animation */
+  transition: height 300ms cubic-bezier(0.4, 0, 0.2, 1); /* Google Maps style animation timing */
+}
+
+/* Fjern transition under drag for præcis finger-følgning */
+.psu-sheet.dragging {
+  transition: none; /* Ingen transition under drag - følger fingeren præcis */
   overflow: hidden;
   /* Fjernet will-change for at forhindre zoom */
   overscroll-behavior: contain; /* Forhindrer scroll chaining */
@@ -40,6 +43,10 @@
   -webkit-touch-callout: none; /* Forhindrer callout menu på iOS */
   -webkit-user-select: none; /* Forhindrer tekst markering på iOS */
   -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
+  transform: translateZ(0); /* Hardware acceleration uden zoom */
+  -webkit-transform: translateZ(0); /* Safari hardware acceleration */
+  -webkit-backface-visibility: hidden; /* Forhindrer zoom på iOS */
+  backface-visibility: hidden; /* Forhindrer zoom */
 }
 
 /* Handle område - container for drag handle */
@@ -86,16 +93,237 @@
   font-size: 18px;
 }
 
+/* Header indhold container */
+.psu-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Header titel */
+.psu-header-title {
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+/* Plus billede */
+.psu-plus-image {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Mobile responsive styling */
+@media (max-width: 768px) {
+  .psu-plus-image {
+    width: 32px;
+    height: 32px;
+  }
+
+  .psu-header-title {
+    font-size: 16px;
+  }
+
+  .psu-header {
+    padding: 6px 12px 0 12px;
+  }
+}
+
+.psu-plus-image:hover {
+  transform: scale(1.05);
+}
+
+.psu-plus-image:active {
+  transform: scale(0.95);
+}
+
 /* Indholdsområde - scrollbar hovedindhold */
 .psu-content {
   padding: 16px;
   color: white;
   overflow-y: auto; /* Kun vertikal scrolling som Google Maps */
   overflow-x: hidden; /* Ingen horizontal scrolling */
-  max-height: calc(100vh - 60px); /* Plads til header og handle */
+  max-height: calc(100vh - 120px); /* Mere plads til scrolling */
   scroll-behavior: smooth; /* Smooth scrolling */
   -webkit-overflow-scrolling: touch; /* Native smooth scroll på iOS */
   overscroll-behavior: contain; /* Forhindrer scroll chaining */
   -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
   pointer-events: auto; /* Tillad interaktion med indhold */
+  transform: translateZ(0); /* Hardware acceleration uden zoom */
+  -webkit-transform: translateZ(0); /* Safari hardware acceleration */
+  /* Fjern scrollbar visuelt men behold funktionalitet */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Når sheet er helt oppe, tillad fuld scrolling */
+.psu-sheet.at-top .psu-content {
+  max-height: calc(100vh - 80px); /* Mere plads når helt oppe */
+  overscroll-behavior: auto; /* Tillad normal scrolling */
+}
+
+.psu-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.psu-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.psu-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.psu-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Forhindrer skalering af billeder og indhold */
+.psu-content img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain; /* Forhindrer over-skaling */
+  object-position: center;
+  transform: translateZ(0); /* Hardware acceleration */
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Sportsgrene sektion */
+.psu-sports-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.psu-sports-title {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.psu-sports-icons {
+  display: flex;
+  gap: 8px;
+}
+
+.psu-sport-icon {
+  width: 24px;
+  height: 24px;
+  opacity: 0.8;
+}
+
+/* Activity cards */
+.psu-activity-card {
+  background: #2a2a2a;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.psu-activity-card.active {
+  background: #1a1a1a;
+}
+
+.psu-card-header {
+  background: #404040;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.psu-card-header.active {
+  background: #ff6b35;
+}
+
+.psu-active-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffd700;
+  box-shadow: 0 0 6px #ffd700;
+}
+
+.psu-card-content {
+  padding: 16px;
+  position: relative;
+}
+
+.psu-card-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.psu-card-title.orange {
+  color: #ff6b35;
+}
+
+.psu-card-description {
+  color: #cccccc;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.psu-card-tags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.psu-tag {
+  background: #555;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.psu-tag.orange {
+  background: #ff6b35;
+  color: white;
+}
+
+.psu-card-user {
+  color: #999;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.psu-card-stats {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.psu-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #999;
+  font-size: 12px;
+}
+
+.psu-stat-icon {
+  width: 16px;
+  height: 16px;
 }
