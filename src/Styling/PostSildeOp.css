@@ -23,13 +23,16 @@
 .psu-sheet {
   position: relative;
   width: 100%;
-  background-image: url(/img/dark-concret.png);
-  background-size: cover;
-  background-color: rgba(17, 17, 17, 0.05); /* Gennemsigtig mørk tone */
+  background-color: #303030; /* Fast baggrundsfarve */
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   box-shadow: none;
-  transition: height 40ms cubic-bezier(0.1, 0.9, 0.2, 1); /* Ekstra glidende animation */
+  transition: height 300ms cubic-bezier(0.4, 0, 0.2, 1); /* Google Maps style animation timing */
+}
+
+/* Fjern transition under drag for præcis finger-følgning */
+.psu-sheet.dragging {
+  transition: none; /* Ingen transition under drag - følger fingeren præcis */
   overflow: hidden;
   /* Fjernet will-change for at forhindre zoom */
   overscroll-behavior: contain; /* Forhindrer scroll chaining */
@@ -40,6 +43,10 @@
   -webkit-touch-callout: none; /* Forhindrer callout menu på iOS */
   -webkit-user-select: none; /* Forhindrer tekst markering på iOS */
   -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
+  transform: translateZ(0); /* Hardware acceleration uden zoom */
+  -webkit-transform: translateZ(0); /* Safari hardware acceleration */
+  -webkit-backface-visibility: hidden; /* Forhindrer zoom på iOS */
+  backface-visibility: hidden; /* Forhindrer zoom */
 }
 
 /* Handle område - container for drag handle */
@@ -86,6 +93,55 @@
   font-size: 18px;
 }
 
+/* Header indhold container */
+.psu-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Header titel */
+.psu-header-title {
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+/* Plus knap */
+.psu-plus-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #e67e22; /* Mere orange farve som i billedet */
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.psu-plus-button:hover {
+  background-color: #f39c12; /* Lysere orange ved hover */
+  transform: scale(1.05);
+}
+
+.psu-plus-button:active {
+  transform: scale(0.95);
+}
+
+/* Plus ikon */
+.psu-plus-icon {
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Indholdsområde - scrollbar hovedindhold */
 .psu-content {
   padding: 16px;
@@ -98,4 +154,18 @@
   overscroll-behavior: contain; /* Forhindrer scroll chaining */
   -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
   pointer-events: auto; /* Tillad interaktion med indhold */
+  transform: translateZ(0); /* Hardware acceleration uden zoom */
+  -webkit-transform: translateZ(0); /* Safari hardware acceleration */
+}
+
+/* Forhindrer skalering af billeder og indhold */
+.psu-content img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain; /* Forhindrer over-skaling */
+  object-position: center;
+  transform: translateZ(0); /* Hardware acceleration */
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }

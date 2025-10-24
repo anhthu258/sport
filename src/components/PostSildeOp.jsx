@@ -58,6 +58,10 @@ export default function PostSildeOp({
     startYRef.current = clientY; // Gem hvor brugeren startede at trække (Y position)
     startHeightRef.current = height; // Gem sheet højde da drag startede
     document.body.style.userSelect = "none"; // Forhindrer tekst markering under drag
+
+    // Google Maps style: forhindrer zoom og scrolling under drag
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
   };
 
   // Håndterer start af drag - tillad drag fra hele bottom sheet
@@ -81,7 +85,7 @@ export default function PostSildeOp({
     beginDrag(clientY); // Start drag operation
   };
 
-  // Håndterer drag bevægelse - opdaterer højde i real-time med requestAnimationFrame
+  // Håndterer drag bevægelse - følger fingeren præcis i real-time
   // Kaldes når brugeren trækker fingeren/musen mens de holder nede
   const onPointerMove = (e) => {
     if (!isDragging) return; // Hvis vi ikke trækker, gør intet
@@ -91,11 +95,9 @@ export default function PostSildeOp({
     // Positiv delta = træk op (øg højde), negativ delta = træk ned (mindsk højde)
     const maxH = getMaxHeight(); // Hent maksimal højde
 
-    // Ekstra glidende sensitivity for ultra smooth drag
-    const sensitivity = 1.8; // Højere følsomhed for ekstra glidende følelse
-    const adjustedDelta = delta * sensitivity; // Gør drag mere følsomt
+    // Direkte følsomhed - følger fingeren præcis
     const newHeight = clamp(
-      startHeightRef.current + adjustedDelta, // Start højde + bevægelse
+      startHeightRef.current + delta, // Start højde + direkte bevægelse
       minHeight, // Minimum højde (collapsed)
       maxH // Maksimal højde (fuldt åben)
     );
@@ -104,28 +106,41 @@ export default function PostSildeOp({
     e.preventDefault(); // Forhindrer scrolling
     e.stopPropagation(); // Forhindrer event bubbling
 
-    // requestAnimationFrame for ekstra smooth animation
-    requestAnimationFrame(() => {
-      setHeight(newHeight); // Opdater sheet højde
-    });
+    // Direkte opdatering - ingen requestAnimationFrame delay
+    setHeight(newHeight); // Opdater sheet højde øjeblikkeligt
   };
 
-  // Håndterer slutning af drag - snap til kun to positioner som Google Maps
+  // Håndterer slutning af drag - snap til tre positioner som Google Maps
   // Kaldes når brugeren slipper fingeren/musen
   const onPointerUp = () => {
     if (!isDragging) return; // Hvis vi ikke trækker, gør intet
     setIsDragging(false); // Marker at vi ikke længere trækker
     document.body.style.userSelect = ""; // Gendan tekst markering
 
-    // Google Maps style: kun to positioner - collapsed eller fuldt åben
+    // Google Maps style: gendan normal scrolling
+    document.body.style.overflow = "";
+    document.body.style.touchAction = "";
+
+    // Google Maps style: tre positioner - collapsed, peek, og fuldt åben
     const maxH = getMaxHeight(); // Hent maksimal højde
     const current = height; // Nuværende højde
-    const threshold = (minHeight + maxH) / 2; // Midtpunkt mellem de to positioner
 
-    // Bestem hvilken position sheet skal snappe til
-    let target = current < threshold ? minHeight : maxH; // Kun collapsed eller fuldt åben
+    // Beregn tre snap positioner som Google Maps
+    const collapsedHeight = minHeight; // 180px - kun handle synlig
+    const peekHeight = Math.min(300, maxH * 0.4); // 40% af max eller 300px - delvis synlig
+    const fullHeight = maxH; // 100% - fuldt åben
 
-    // Smooth snap animation
+    // Bestem hvilken position sheet skal snappe til baseret på nuværende højde
+    let target;
+    if (current < (collapsedHeight + peekHeight) / 2) {
+      target = collapsedHeight; // Snap til collapsed
+    } else if (current < (peekHeight + fullHeight) / 2) {
+      target = peekHeight; // Snap til peek
+    } else {
+      target = fullHeight; // Snap til fuldt åben
+    }
+
+    // Smooth snap animation med Google Maps timing
     requestAnimationFrame(() => {
       setHeight(target); // Snap til den valgte position
     });
@@ -175,7 +190,7 @@ export default function PostSildeOp({
       {/* Bottom sheet med dynamisk højde - hele sheet er draggable */}
       <div
         ref={sheetRef}
-        className="psu-sheet"
+        className={`psu-sheet ${isDragging ? "dragging" : ""}`}
         style={{ height }}
         onMouseDown={onPointerDown}
         onTouchStart={onPointerDown}
@@ -189,7 +204,16 @@ export default function PostSildeOp({
         </div>
 
         {/* Header indhold (f.eks. "DOKK1") */}
-        {header ? <div className="psu-header">{header}</div> : null}
+        {header ? (
+          <div className="psu-header">
+            <div className="psu-header-content">
+              <span className="psu-header-title">{header}</span>
+              <button className="psu-plus-button" aria-label="Tilføj">
+                <span className="psu-plus-icon">+</span>
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         {/* Hovedindhold - ikke draggable */}
         <div className="psu-content">{children}</div>
