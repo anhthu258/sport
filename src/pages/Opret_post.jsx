@@ -83,14 +83,14 @@ export default function OpretPost() {
   async function handleSubmit(e) {
     e.preventDefault(); // Forhindrer at siden reloader (standard form behavior)
 
-    const userDoc = await getDoc(doc(db, "profil", auth.currentUser.uid));
-    const user = auth.currentUser;
-    const userData = userDoc.data()
+    const userDoc = await getDoc(doc(db, "profil", auth.currentUser.uid)); //Henter alt data fra profil, og fortæller hvilken user, der er logget ind "auth"
+    const user = auth.currentUser; //CurrentUser = User
+    const userData = userDoc.data() //konstant til alt data 
 
-    if(!user){
+    if(!user){ //Hvis der ikke er noget user logget ind, så gør dette
         setMessage("Du kan ikke oprette opslag, uden at være logget ind");
         return;
-    }
+    } //Ellers bare fortsæt resten af scriptet
 
     // Valider at påkrævede felter er udfyldt
     // Tjek at de vigtigste felter ikke er tomme
@@ -112,8 +112,8 @@ export default function OpretPost() {
     // Gem opslaget i Firestore "posts" collection
     // Dette opretter et nyt dokument i "posts" collectionen
     await addDoc(collection(db, "posts"), {
-      creatorId: auth.currentUser.uid, 
-      userName: userData.username,
+      creatorId: auth.currentUser.uid, //Nuværende userID
+      userName: userData.username, //Username, som brugeren selv har tastet ind
       hotspotId: location, // Reference til valgt lokation (Firestore dokument ID)
       title, // Postens titel (fra input felt)
       details, // Beskrivelse (fra textarea)
