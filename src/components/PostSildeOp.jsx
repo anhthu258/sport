@@ -19,6 +19,7 @@
  * @param {ReactNode} children - Hovedindhold
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 // Firebase imports for Firestore data
 import { db } from "../assets/firebase"; // Firebase config (firestore)
 import {
@@ -29,6 +30,7 @@ import {
   limit,
 } from "firebase/firestore"; // Firestore operations
 import "../Styling/PostSildeOp.css";
+import "../pages/Opret_post.jsx";
 
 export default function PostSildeOp({
   open = false, // Om bottom sheet er åben
@@ -64,6 +66,9 @@ export default function PostSildeOp({
   // State for posts data - Firestore integration
   const [posts, setPosts] = useState([]); // Array af posts fra Firestore
   const [loading, setLoading] = useState(true); // Loading state for posts
+
+  // Navigation hook
+  const navigate = useNavigate();
 
   // Base counts for each post - dynamisk baseret på post data
   const getBaseCounts = (postId) => {
@@ -488,6 +493,8 @@ export default function PostSildeOp({
                 src="/img/plus.png"
                 alt="Tilføj"
                 className="psu-plus-image"
+                onClick={() => navigate("/opretpost")}
+                style={{ cursor: "pointer" }}
               />
             </div>
           </div>
