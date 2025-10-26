@@ -357,10 +357,28 @@ export default function TestingMAPSTUFFPage() {
               selectedSport={selectedSport}
               onFilterChange={({ sportId }) => setSelectedSport(sportId)}
               sports={[
-                { id: "basketball", name: "Basketball" },
-                { id: "football", name: "Fodbold" },
-                { id: "tennis", name: "Tennis" },
-                { id: "volleyball", name: "Volleyball" },
+                {
+                  id: "Basketball",
+                  name: "Basketball",
+                  icon: (
+                    <img src="/img/basketball-black.png" alt="Basketball" />
+                  ),
+                },
+                {
+                  id: "Fodbold",
+                  name: "Fodbold",
+                  icon: <img src="/img/fodbold-black.png" alt="Fodbold" />,
+                },
+                {
+                  id: "Tennis",
+                  name: "Tennis",
+                  icon: <img src="/img/tennis-black.png" alt="Tennis" />,
+                },
+                {
+                  id: "Volleyball",
+                  name: "Volleyball",
+                  icon: <img src="/img/volley-black.png" alt="Volleyball" />,
+                },
               ]}
             />
           </div>
