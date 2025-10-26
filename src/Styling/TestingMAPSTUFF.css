@@ -252,6 +252,7 @@
   padding: 0 12px;
 }
 
+/* styling for filter buttons */
 .filter__btn {
   width: 64px;
   height: 64px;
@@ -268,7 +269,7 @@
   overflow: visible;
 }
 
-/* Background layer using ::before pseudo-element */
+/* Background layer styling using ::before pseudo-element */
 .filter__btn::before {
   content: "";
   position: absolute;
@@ -291,7 +292,7 @@
   opacity: 1;
 }
 
-/* Default state - show white icon, hide black icon */
+/* default state - show white icon, hide black icon */
 .filter__btn .filter-icon-default {
   display: block;
   position: relative;
@@ -304,7 +305,7 @@
   z-index: 1;
 }
 
-/* Active state - show black icon on colored background, hide white icon */
+/* active state - show black icon on colored background, hide white icon */
 .filter__btn.is-active .filter-icon-default {
   display: none;
 }
@@ -333,6 +334,7 @@
   background-image: url("/img/green-bg.png");
 }
 
+/* styling for images inside filter buttons */
 .filter__btn img {
   width: 100%;
   height: 100%;
