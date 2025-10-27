@@ -19,7 +19,7 @@
  * @param {ReactNode} children - Hovedindhold
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
+// import { useNavigate } from "react-router"; // Ikke længere brugt
 // Firebase imports for Firestore data
 import { db } from "../assets/firebase"; // Firebase config (firestore)
 import {
@@ -37,9 +37,11 @@ export default function PostSildeOp({
   onClose, // Funktion der kaldes når sheet lukkes
   initialHeight = 180, // Start højde i pixels - collapsed state
   maxHeightPercent = 100, // Max højde som procent af skærm
-  header, // Header indhold (f.eks. "DOKK1")
   children, // Hovedindhold
   disableBackdropClose = false, // Hvis true, klik udenfor lukker ikke og klik passerer igennem til baggrunden
+  externalPosts = null, // Eksterne posts (hvis ikke givet, hentes fra Firestore)
+  externalLoading = false, // Loading state for eksterne posts
+  hotspotName = "Vælg et punkt", // Navn på det valgte hotspot
 }) {
   // ========================================
   // REFS - DOM elementer og drag state
@@ -65,11 +67,15 @@ export default function PostSildeOp({
   // const [userProfile, setUserProfile] = useState(null); // Firestore profil data (username, email, etc.)
 
   // State for posts data - Firestore integration
-  const [posts, setPosts] = useState([]); // Array af posts fra Firestore
-  const [loading, setLoading] = useState(true); // Loading state for posts
+  const [internalPosts, setInternalPosts] = useState([]); // Array af posts fra Firestore
+  const [internalLoading, setInternalLoading] = useState(true); // Loading state for posts
 
-  // Navigation hook
-  const navigate = useNavigate();
+  // Brug eksterne posts hvis givet, ellers interne posts
+  const posts = externalPosts !== null ? externalPosts : internalPosts;
+  const loading = externalPosts !== null ? externalLoading : internalLoading;
+
+  // Navigation hook - ikke længere brugt da der ikke er header
+  // const navigate = useNavigate();
 
   // Base counts for each post - dynamisk baseret på post data
   const getBaseCounts = (postId) => {
@@ -194,6 +200,16 @@ export default function PostSildeOp({
   }, [open, getMaxHeight, initialHeight]);
 
   /**
+   * Sæt height til initialHeight når PostSildeOp åbnes
+   * Dette sikrer at der er plads til at trække den ned
+   */
+  useEffect(() => {
+    if (open) {
+      setHeight(initialHeight); // Åbn i initialHeight så der er plads til at trække ned
+    }
+  }, [open, initialHeight]);
+
+  /**
    * Detekter når sheet er helt oppe (for scrolling funktionalitet)
    * Når sheet er 95% af max højde, betragtes den som "helt oppe"
    */
@@ -236,8 +252,14 @@ export default function PostSildeOp({
    * så dukker det automatisk op i PostSildeOp uden at man skal refreshe siden!
    */
   useEffect(() => {
+    // Hvis der er givet eksterne posts, spring Firestore listener over
+    if (externalPosts !== null) {
+      setInternalLoading(false);
+      return;
+    }
+
     // Vis loading state mens data hentes
-    setLoading(true);
+    setInternalLoading(true);
 
     // ========================================
     // OPRET FIRESTORE QUERY
@@ -283,13 +305,13 @@ export default function PostSildeOp({
 
         // Opdater React state med de nye posts
         // Dette trigger en re-render af komponenten med de nye data
-        setPosts(postsData);
-        setLoading(false); // Skjul loading state
+        setInternalPosts(postsData);
+        setInternalLoading(false); // Skjul loading state
       },
       (error) => {
         // Error callback hvis noget går galt
         console.error("Fejl ved hentning af posts:", error);
-        setLoading(false); // Skjul loading state selv ved fejl
+        setInternalLoading(false); // Skjul loading state selv ved fejl
       }
     );
 
@@ -301,7 +323,7 @@ export default function PostSildeOp({
     // Dette forhindrer memory leaks og unødvendige database calls
     // Når brugeren navigerer væk fra siden, så stopper vi med at lytte
     return () => unsubscribe();
-  }, []); // Tom dependency array = kør kun ved første load (ikke ved re-render)
+  }, [externalPosts]); // Dependency på externalPosts - hvis den ændres, genstart listener
 
   // ========================================
   // DRAG FUNCTIONS - Drag funktionalitet
@@ -330,22 +352,29 @@ export default function PostSildeOp({
    */
   const onPointerDown = (e) => {
     // Tillad drag fra hele bottom sheet, ikke kun handle området
-    if (!e.target.closest(".psu-sheet")) return; // Hvis ikke klik på sheet, gør intet
+    if (!e.target.closest(".psu-sheet")) {
+      return; // Hvis ikke klik på sheet, gør intet
+    }
 
     // Hvis sheet er helt oppe og brugeren klikker på indhold, tillad scrolling
     if (isAtTop && e.target.closest(".psu-content")) {
       return; // Tillad normal scrolling i indhold
     }
 
-    // Forhindrer zoom på mobile
-    e.preventDefault(); // Forhindrer standard touch behavior
-    e.stopPropagation(); // Forhindrer event bubbling
+    // Forhindrer event bubbling
+    e.stopPropagation();
 
-    // Forhindrer double-tap zoom
+    // Forhindrer double-tap zoom og multi-touch
     if (e.touches && e.touches.length > 1) {
       // Hvis flere fingre rører skærmen
-      e.preventDefault(); // Forhindrer zoom
       return; // Stop drag operation
+    }
+
+    // Forhindrer default touch behavior for bedre drag
+    try {
+      e.preventDefault();
+    } catch {
+      // Ignore preventDefault errors
     }
 
     const clientY = e.touches ? e.touches[0].clientY : e.clientY; // Hent Y position (touch eller mouse)
@@ -372,12 +401,29 @@ export default function PostSildeOp({
       maxH // Maksimal højde (fuldt åben)
     );
 
-    // Altid preventDefault for ultra smooth drag
+    // Forhindrer scrolling og event bubbling
     e.preventDefault(); // Forhindrer scrolling
     e.stopPropagation(); // Forhindrer event bubbling
 
     // Direkte opdatering - ingen requestAnimationFrame delay
     setHeight(newHeight); // Opdater sheet højde øjeblikkeligt
+
+    // Visuel indikator når man trækker ned for at lukke
+    const closeThreshold = 100; // Samme tærskel som i onPointerUp
+    if (newHeight < closeThreshold) {
+      // Sheet bliver mere transparent når man trækker ned for at lukke
+      if (sheetRef.current) {
+        sheetRef.current.style.opacity = Math.max(
+          0.2,
+          newHeight / closeThreshold
+        );
+      }
+    } else {
+      // Gendan normal opacity
+      if (sheetRef.current) {
+        sheetRef.current.style.opacity = "1";
+      }
+    }
   };
 
   /**
@@ -394,6 +440,11 @@ export default function PostSildeOp({
     document.body.style.overflow = "";
     document.body.style.touchAction = "";
 
+    // Gendan normal opacity
+    if (sheetRef.current) {
+      sheetRef.current.style.opacity = "1";
+    }
+
     // Google Maps style: tre positioner - collapsed, peek, og fuldt åben
     const maxH = getMaxHeight(); // Hent maksimal højde
     const current = height; // Nuværende højde
@@ -405,7 +456,20 @@ export default function PostSildeOp({
 
     // Bestem hvilken position sheet skal snappe til baseret på nuværende højde
     let target;
-    if (current < (collapsedHeight + peekHeight) / 2) {
+    const closeThreshold = 100; // Luk hvis under 100px (meget nemmere på telefon)
+
+    // Luk hvis trækket under 100px (meget nemmere på telefon)
+    console.log(
+      "Close check - current:",
+      current,
+      "closeThreshold:",
+      closeThreshold
+    );
+    if (current < closeThreshold) {
+      console.log("Closing PostSildeOp - height below threshold");
+      onClose();
+      return;
+    } else if (current < (collapsedHeight + peekHeight) / 2) {
       target = collapsedHeight; // Snap til collapsed
     } else if (current < (peekHeight + fullHeight) / 2) {
       target = peekHeight; // Snap til peek
@@ -449,13 +513,19 @@ export default function PostSildeOp({
   // RENDER - JSX return
   // ========================================
 
+  // Debug log for open prop
+  console.log("PostSildeOp render - open:", open, "height:", height);
+
   // Hvis sheet ikke er åben, render intet
   if (!open) return null;
+
+  // Bestem om vi skal bruge pass-through mode (når collapsed)
+  const isCollapsed = height <= minHeight;
 
   return (
     <div
       ref={containerRef}
-      className="psu-overlay"
+      className={`psu-overlay ${isCollapsed ? "psu-pass-through" : ""}`}
       role="dialog"
       aria-modal="true"
       aria-label="Detaljer"
@@ -484,43 +554,90 @@ export default function PostSildeOp({
         aria-label="Træk for at udvide"
         tabIndex={0}
       >
-        {/* Drag handle - visuelt element */}
-        <div className="psu-handleArea">
-          <div className="psu-handle" />
+        {/* Drag handle indikator */}
+        <div className="psu-drag-indicator">
+          <div className="psu-handle"></div>
         </div>
-
-        {/* Header indhold (f.eks. "DOKK1") */}
-        {header ? (
-          <div className="psu-header">
-            <div className="psu-header-content">
-              <span className="psu-header-title">{header}</span>
-              <img
-                src="/img/plus.png"
-                alt="Tilføj"
-                className="psu-plus-image"
-                onClick={() => navigate("/opretpost")}
-                style={{ cursor: "pointer" }}
-              />
-            </div>
-          </div>
-        ) : null}
 
         {/* Hovedindhold - ikke draggable */}
         <div className="psu-content">
-          {/* Sportsgrene sektion */}
+          {/* Overskrift og plus knap */}
+          <div className="psu-title-section">
+            <h2 className="psu-title">{hotspotName}</h2>
+            <button
+              className="psu-plus-button"
+              onClick={() => {
+                // Naviger til opret post side
+                window.location.href = "/opretpost";
+              }}
+              aria-label="Tilføj post"
+            >
+              <span className="psu-plus-icon">+</span>
+            </button>
+          </div>
+
+          {/* Sportsgrene sektion - dynamisk baseret på posts */}
           <div className="psu-sports-section">
             <div className="psu-sports-title">Sportsgrene</div>
             <div className="psu-sports-icons">
-              <img
-                src="/img/basketball-white.png"
-                alt="Basketball"
-                className="psu-sport-icon"
-              />
-              <img
-                src="/img/fodbold-white.png"
-                alt="Fodbold"
-                className="psu-sport-icon"
-              />
+              {(() => {
+                // Hent unikke sportsgrene fra posts (kun dem under 24 timer)
+                const now = new Date();
+                const recentPosts = posts.filter((post) => {
+                  const postTime = new Date(post.timestamp);
+                  const timeDiff = now - postTime;
+                  return timeDiff < 24 * 60 * 60 * 1000; // 24 timer i millisekunder
+                });
+
+                const uniqueSports = [
+                  ...new Set(
+                    recentPosts.map((post) => post.sport).filter(Boolean)
+                  ),
+                ];
+
+                // Mapping af sportsgrene til ikoner
+                const sportIcons = {
+                  Basketball: "/img/basketball-white.png",
+                  Fodbold: "/img/fodbold-white.png",
+                  Tennis: "/img/tennis-white.png",
+                  Volleyball: "/img/volleyball-white.png",
+                  Badminton: "/img/badminton-white.png",
+                  Padel: "/img/padel-white.png",
+                  Squash: "/img/squash-white.png",
+                  Håndbold: "/img/handbold-white.png",
+                  Bordtennis: "/img/bordtennis-white.png",
+                  Fitness: "/img/fitness-white.png",
+                };
+
+                // Hvis ingen posts, vis standard ikoner
+                if (uniqueSports.length === 0) {
+                  return (
+                    <>
+                      <img
+                        src="/img/basketball-white.png"
+                        alt="Basketball"
+                        className="psu-sport-icon"
+                      />
+                      <img
+                        src="/img/fodbold-white.png"
+                        alt="Fodbold"
+                        className="psu-sport-icon"
+                      />
+                    </>
+                  );
+                }
+
+                // Vis ikoner for de faktiske sportsgrene
+                return uniqueSports.map((sport, index) => (
+                  <img
+                    key={index}
+                    src={sportIcons[sport] || "/img/sport-default-white.png"}
+                    alt={sport}
+                    className="psu-sport-icon"
+                    title={sport}
+                  />
+                ));
+              })()}
             </div>
           </div>
 
@@ -609,88 +726,99 @@ export default function PostSildeOp({
 
           {/* Render posts fra Firestore */}
           {!loading &&
-            posts.map((post) => {
-              // Bestem om posten er aktiv (inden for 2 timer)
-              const now = new Date();
-              const postTime = new Date(post.timestamp);
-              const timeDiff = now - postTime;
-              const isActive = timeDiff < 2 * 60 * 60 * 1000; // 2 timer i millisekunder
+            posts
+              .filter((post) => {
+                // Filtrer posts der er under 24 timer gamle
+                const now = new Date();
+                const postTime = new Date(post.timestamp);
+                const timeDiff = now - postTime;
+                const isUnder24Hours = timeDiff < 24 * 60 * 60 * 1000; // 24 timer i millisekunder
+                return isUnder24Hours;
+              })
+              .map((post) => {
+                // Bestem om posten er aktiv (inden for 2 timer)
+                const now = new Date();
+                const postTime = new Date(post.timestamp);
+                const timeDiff = now - postTime;
+                const isActive = timeDiff < 2 * 60 * 60 * 1000; // 2 timer i millisekunder
 
-              return (
-                <div
-                  key={post.id}
-                  className={`psu-activity-card ${isActive ? "active" : ""}`}
-                >
+                return (
                   <div
-                    className={`psu-card-header ${isActive ? "active" : ""}`}
+                    key={post.id}
+                    className={`psu-activity-card ${isActive ? "active" : ""}`}
                   >
-                    <span>{isActive ? "Aktiv nu" : formatTime(post.time)}</span>
-                    {isActive && <div className="psu-active-dot"></div>}
-                  </div>
-                  <div className="psu-card-content">
-                    <div className="psu-card-title orange">{post.title}</div>
-                    <div className="psu-card-description">{post.details}</div>
-                    <div className="psu-card-tags">
-                      {/* Vis kun tags fra Firestore, ikke sport */}
-                      {post.tags &&
-                        post.tags.map((tag, index) => (
-                          <span key={index} className="psu-tag">
-                            #{tag}
-                          </span>
-                        ))}
+                    <div
+                      className={`psu-card-header ${isActive ? "active" : ""}`}
+                    >
+                      <span>
+                        {isActive ? "Aktiv nu" : formatTime(post.time)}
+                      </span>
+                      {isActive && <div className="psu-active-dot"></div>}
                     </div>
-                    {/* Bruger navn fra Firestore */}
-                    <div className="psu-card-user">
-                      {post.userName || "Anonym_ugle"}
-                    </div>
-                    <div className="psu-card-stats">
-                      <div className="psu-stats-container">
-                        <div className="psu-stat-element">
-                          <div
-                            className={`psu-stat-square star ${
-                              interestedStates[post.id] ? "active" : ""
-                            }`}
-                            onClick={() => handleInterestedClick(post.id)}
-                            style={{ cursor: "pointer" }}
-                          >
-                            {interestedStates[post.id] && (
-                              <img
-                                src="/img/star-orange.png"
-                                alt="Star"
-                                className="psu-stat-icon-large"
-                              />
-                            )}
+                    <div className="psu-card-content">
+                      <div className="psu-card-title orange">{post.title}</div>
+                      <div className="psu-card-description">{post.details}</div>
+                      <div className="psu-card-tags">
+                        {/* Vis kun tags fra Firestore, ikke sport */}
+                        {post.tags &&
+                          post.tags.map((tag, index) => (
+                            <span key={index} className="psu-tag">
+                              #{tag}
+                            </span>
+                          ))}
+                      </div>
+                      {/* Bruger navn fra Firestore */}
+                      <div className="psu-card-user">
+                        {post.userName || "Anonym_ugle"}
+                      </div>
+                      <div className="psu-card-stats">
+                        <div className="psu-stats-container">
+                          <div className="psu-stat-element">
+                            <div
+                              className={`psu-stat-square star ${
+                                interestedStates[post.id] ? "active" : ""
+                              }`}
+                              onClick={() => handleInterestedClick(post.id)}
+                              style={{ cursor: "pointer" }}
+                            >
+                              {interestedStates[post.id] && (
+                                <img
+                                  src="/img/star-orange.png"
+                                  alt="Star"
+                                  className="psu-stat-icon-large"
+                                />
+                              )}
+                            </div>
+                            <div className="psu-stat-text">
+                              {getInterestedCount(post.id)} interesseret
+                            </div>
                           </div>
-                          <div className="psu-stat-text">
-                            {getInterestedCount(post.id)} interesseret
-                          </div>
-                        </div>
-                        <div className="psu-stat-element">
-                          <div
-                            className={`psu-stat-square check ${
-                              participatingStates[post.id] ? "active" : ""
-                            }`}
-                            onClick={() => handleParticipatingClick(post.id)}
-                            style={{ cursor: "pointer" }}
-                          >
-                            {participatingStates[post.id] && (
-                              <img
-                                src="/img/check-orange.png"
-                                alt="Check"
-                                className="psu-stat-icon-large"
-                              />
-                            )}
-                          </div>
-                          <div className="psu-stat-text">
-                            {getParticipatingCount(post.id)} deltager
+                          <div className="psu-stat-element">
+                            <div
+                              className={`psu-stat-square check ${
+                                participatingStates[post.id] ? "active" : ""
+                              }`}
+                              onClick={() => handleParticipatingClick(post.id)}
+                              style={{ cursor: "pointer" }}
+                            >
+                              {participatingStates[post.id] && (
+                                <img
+                                  src="/img/check-orange.png"
+                                  alt="Check"
+                                  className="psu-stat-icon-large"
+                                />
+                              )}
+                            </div>
+                            <div className="psu-stat-text">
+                              {getParticipatingCount(post.id)} deltager
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
 
           {children}
         </div>

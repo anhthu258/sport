@@ -42,6 +42,7 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+console.log("Firebase initialized, db:", db);
 
 // ----------------------------------------------------------------------------
 // Map init
@@ -81,9 +82,13 @@ const map = new mapboxgl.Map({
   maxBounds: START_BOUNDS,
   attributionControl: false, // hide attribution + compact info button
 });
+console.log("Map initialized:", map);
 // Remove default zoom/compass UI; we keep our own Reset control
 map.scrollZoom.enable();
-map.on("style.load", () => map.setFog({}));
+map.on("style.load", () => {
+  console.log("Map style loaded");
+  map.setFog({});
+});
 
 // --- Reset View control (top-left) ---
 class ResetViewControl {
@@ -377,11 +382,18 @@ function removeMarker(hid) {
  * @param {string[]} sports Unique sports for this hotspot from posts
  */
 async function addHotspotMarker(h, sports) {
+  console.log(
+    "Adding marker for hotspot:",
+    h.id,
+    "with koordinater:",
+    h.koordinater
+  );
   const pos = parseDMSPair(h.koordinater);
   if (!pos) {
     console.warn("Could not parse koordinater for", h);
     return;
   }
+  console.log("Parsed coordinates:", pos);
 
   // Build a marker element
   const root = document.createElement("div");
@@ -420,6 +432,11 @@ async function addHotspotMarker(h, sports) {
     .setLngLat([pos.lng, pos.lat])
     .addTo(map);
 
+  console.log("Marker added to map for hotspot:", h.id, "at position:", [
+    pos.lng,
+    pos.lat,
+  ]);
+
   // Track for zoom-based size updates
   _pinNodes.push(pin);
   _markers.set(h.id, { marker, pin });
@@ -431,6 +448,7 @@ async function addHotspotMarker(h, sports) {
   el.addEventListener(
     "click",
     (ev) => {
+      console.log("Pin clicked for hotspot:", h.id);
       ev.stopPropagation();
       const current = map.getZoom();
       // Always zoom in at least a bit to create a clear focus motion
@@ -472,7 +490,7 @@ async function addHotspotMarker(h, sports) {
           window.parent.postMessage(msg, window.location.origin);
         }
       } catch (e) {
-        // noop
+        console.error("Error sending message:", e);
       }
     },
     { passive: true }
@@ -525,16 +543,20 @@ function sportsSignature(arr) {
 // ----------------------------------------------------------------------------
 (async function main() {
   try {
+    console.log("Starting map initialization...");
     // 1) Load all hotspots and render as empty initially (grey pins)
     const allHotspotsSnap = await getDocs(collection(db, "hotspots"));
+    console.log("Loaded hotspots:", allHotspotsSnap.docs.length);
     allHotspotsSnap.forEach((d) => {
       const h = { id: d.id, ...(d.data() || {}) };
       _hotspots.set(h.id, h);
+      console.log("Hotspot:", h.id, h.title || h.name || h.navn || h.placeName);
     });
     for (const h of _hotspots.values()) {
       const sig = ""; // empty
       _currentSportsSig.set(h.id, sig);
       await addHotspotMarker(h, []);
+      console.log("Added marker for hotspot:", h.id);
     }
 
     // 2) Realtime: listen to posts and update markers for all hotspots
