@@ -92,7 +92,7 @@ export default function TestingMAPSTUFFPage() {
     }, {});
 
     // Konverter til slides format
-    return Object.values(groupedPosts).map((group, index) => {
+    return Object.values(groupedPosts).map((group) => {
       const activeCount = group.posts.filter((post) => {
         const now = new Date();
         // Håndter Firebase timestamp korrekt
@@ -125,7 +125,7 @@ export default function TestingMAPSTUFFPage() {
     [panelX, width]
   ); // treat as fully hidden
 
-  // PostSildeOp only opens when clicking on pins, not automatically when panel is hidden
+  // PostSildeOp åbner kun når man klikker på pins, ikke automatisk når panelet er skjult
 
   // --- Drag handle events ---
   // Attach global listeners so dragging continues even if the pointer leaves the handle
@@ -190,10 +190,10 @@ export default function TestingMAPSTUFFPage() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // No tap-to-reveal behavior; the reveal handle is permanently available
-  // whenever the panel is fully hidden.
+  // Ingen tap-to-reveal adfærd; reveal handle er permanent tilgængelig
+  // når panelet er fuldt skjult.
 
-  // Listen for hotspot clicks from the iframe map and update sheet title + filter posts
+  // Lyt efter hotspot klik fra iframe kort og opdater sheet titel + filtrer posts
   useEffect(() => {
     const onMessage = (e) => {
       try {
@@ -278,18 +278,18 @@ export default function TestingMAPSTUFFPage() {
     return () => unsubscribe();
   }, []);
 
-  // Derive filtered posts by sport and hotspot
+  // Afled filtrerede posts efter sport og hotspot
   const filteredPosts = useMemo(() => {
     let filtered = posts;
 
-    // Filter by sport if selected
+    // Filtrer efter sport hvis valgt
     if (selectedSport) {
       filtered = filtered.filter(
         (p) => (p.sport || "").toString() === selectedSport
       );
     }
 
-    // Filter by hotspot if selected
+    // Filtrer efter hotspot hvis valgt
     if (selectedHotspotId) {
       filtered = filtered.filter(
         (p) => (p.hotspotId || "").toString() === selectedHotspotId
@@ -299,7 +299,7 @@ export default function TestingMAPSTUFFPage() {
     return filtered;
   }, [posts, selectedSport, selectedHotspotId]);
 
-  // Desktop drag-to-scroll for the carousel (touch swipe already works)
+  // Desktop drag-to-scroll for karussellen (touch swipe virker allerede)
   const onCarDown = (e) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
     e.stopPropagation();
@@ -375,20 +375,20 @@ export default function TestingMAPSTUFFPage() {
     }
   };
 
-  // Compute left position for the reveal tab so it follows the panel edge
+  // Beregn venstre position for reveal tab så den følger panelkanten
   const revealLeft = (() => {
     const w = width();
     const panelRightEdge = w + panelX; // panel's right edge in viewport px
     const minLeft = HANDLE_MARGIN;
     const maxLeft = w - (HANDLE_WIDTH + HANDLE_MARGIN);
-    // Place handle centered on the edge, clamped to viewport
+    // Placer handle centreret på kanten, begrænset til viewport
     const desired = panelRightEdge - HANDLE_WIDTH / 2;
     return Math.max(minLeft, Math.min(maxLeft, desired));
   })();
 
   return (
     <div ref={containerRef} className="tm-root">
-      {/* Map layer (iframe) */}
+      {/* Kort lag (iframe) */}
       <iframe
         title="MapAnker"
         src="/MapAnker.html"
@@ -397,7 +397,7 @@ export default function TestingMAPSTUFFPage() {
         ref={frameRef}
       />
 
-      {/* Overlayed Discover panel */}
+      {/* Overlappende Discover panel */}
       <div
         ref={panelRef}
         className={`tm-panel${dragging ? " dragging" : ""}`}
@@ -452,7 +452,7 @@ export default function TestingMAPSTUFFPage() {
             ))}
           </div>
 
-          {/* Filter component for selecting sport */}
+          {/* Filter komponent til valg af sport */}
 
           <div className="tm-activities">
             <Filter
@@ -592,7 +592,7 @@ export default function TestingMAPSTUFFPage() {
         </div>
       </div>
 
-      {/* Right-side gutter used to drag the panel */}
+      {/* Højre side gutter brugt til at trække panelet */}
       <div
         onPointerDown={onDown}
         onPointerMove={onMove}
@@ -603,7 +603,7 @@ export default function TestingMAPSTUFFPage() {
         aria-label="Drag to reveal map"
       />
 
-      {/* Left-edge reveal tab that follows the panel edge when hidden */}
+      {/* Venstre kant reveal tab der følger panelkanten når skjult */}
       {panelX < 0 && (
         <button
           className="tm-reveal-handle"
@@ -611,8 +611,8 @@ export default function TestingMAPSTUFFPage() {
           type="button"
           style={{ left: `${revealLeft}px` }}
           onPointerDown={(e) => {
-            // Allow drag-to-open starting from the handle
-            // Close the bottom sheet to avoid interaction conflicts while dragging
+            // Tillad drag-to-open startende fra handle
+            // Luk bottom sheet for at undgå interaktionskonflikter under trækning
             setSheetOpen(false);
             onDown(e);
           }}
@@ -624,7 +624,7 @@ export default function TestingMAPSTUFFPage() {
         </button>
       )}
 
-      {/* Post slide-up sheet overlay: only visible when panel is fully hidden and a pin is clicked */}
+      {/* Post slide-up sheet overlay: kun synlig når panel er fuldt skjult og en pin klikkes */}
       <PostSildeOp
         open={isHidden() && sheetOpen}
         onClose={() => {
@@ -640,7 +640,7 @@ export default function TestingMAPSTUFFPage() {
         externalLoading={loadingPosts}
         hotspotName={selectedHotspotName}
       />
-      {/* Debug info */}
+      {/* Debug info - kun i udvikling */}
       {console.log(
         "TestingMAPSTUFFPage render - isHidden:",
         isHidden(),
