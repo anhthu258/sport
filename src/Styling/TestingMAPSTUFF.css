@@ -297,7 +297,7 @@
   opacity: 1;
 }
 
-/* default state - show white icon, hide black icon */
+/* default state - hvis hvidt ikon, gem sort ikon og baggrund */
 .filter__btn .filter-icon-default {
   display: block;
   position: relative;
@@ -310,7 +310,7 @@
   z-index: 1;
 }
 
-/* active state - show black icon on colored background, hide white icon */
+/* active state - vis sort ikon med baggrund, gem hvidt ikon */
 .filter__btn.is-active .filter-icon-default {
   display: none;
 }
