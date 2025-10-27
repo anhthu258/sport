@@ -458,6 +458,22 @@ async function addHotspotMarker(h, sports) {
         curve: 1.6,
         essential: true,
       });
+
+      // Notify parent React app about the clicked hotspot so UI can update
+      try {
+        const title = h.title || h.name || h.navn || h.placeName || h.id;
+        const msg = {
+          source: "map-anker",
+          type: "hotspotClick",
+          hotspotId: h.id,
+          title,
+        };
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage(msg, window.location.origin);
+        }
+      } catch (e) {
+        // noop
+      }
     },
     { passive: true }
   );

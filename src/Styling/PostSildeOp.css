@@ -22,6 +22,17 @@
   -webkit-touch-callout: none; /* Forhindrer callout på iOS */
 }
 
+/* Pass-through mode: let clicks reach the map except on the sheet itself */
+.psu-overlay.psu-pass-through {
+  pointer-events: none;
+}
+.psu-overlay.psu-pass-through .psu-sheet {
+  pointer-events: auto;
+}
+.psu-overlay.psu-pass-through .psu-backdrop {
+  pointer-events: none;
+}
+
 /* ========================================
    BACKDROP - Klik for at lukke sheet
    ======================================== */
@@ -30,6 +41,11 @@
   inset: 0; /* Dækker hele overlay */
   background: transparent; /* Gennemsigtig - kun for klik detection */
   border: none;
+}
+
+/* Pass-through backdrop: ingen klik, lader events ramme baggrunden (kortet) */
+.psu-backdrop.psu-backdrop-pass {
+  pointer-events: none;
 }
 
 /* ========================================

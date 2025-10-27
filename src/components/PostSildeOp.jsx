@@ -39,6 +39,7 @@ export default function PostSildeOp({
   maxHeightPercent = 100, // Max højde som procent af skærm
   header, // Header indhold (f.eks. "DOKK1")
   children, // Hovedindhold
+  disableBackdropClose = false, // Hvis true, klik udenfor lukker ikke og klik passerer igennem til baggrunden
 }) {
   // ========================================
   // REFS - DOM elementer og drag state
@@ -454,17 +455,23 @@ export default function PostSildeOp({
   return (
     <div
       ref={containerRef}
-      className="psu-overlay"
+      className={`psu-overlay ${
+        disableBackdropClose ? "psu-pass-through" : ""
+      }`}
       role="dialog"
       aria-modal="true"
       aria-label="Detaljer"
     >
-      {/* Backdrop - klik for at lukke */}
-      <button
-        className="psu-backdrop"
-        aria-label="Luk"
-        onClick={() => onClose && onClose()}
-      />
+      {/* Backdrop - kan enten lukke på klik eller lade klik passere til baggrunden */}
+      {disableBackdropClose ? (
+        <div className="psu-backdrop psu-backdrop-pass" aria-hidden="true" />
+      ) : (
+        <button
+          className="psu-backdrop"
+          aria-label="Luk"
+          onClick={() => onClose && onClose()}
+        />
+      )}
 
       {/* Bottom sheet med dynamisk højde - hele sheet er draggable */}
       <div

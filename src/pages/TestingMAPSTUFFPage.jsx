@@ -27,6 +27,7 @@ Data
 import { useEffect, useRef, useState, useMemo } from "react";
 import "../Styling/TestingMAPSTUFF.css";
 import Filter from "../components/Filter.jsx";
+import PostSildeOp from "../components/PostSildeOp";
 import { db } from "../assets/firebase.js";
 import { collection, getDocs, onSnapshot } from "firebase/firestore";
 
@@ -49,6 +50,9 @@ export default function TestingMAPSTUFFPage() {
   const [posts, setPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [postsError, setPostsError] = useState(null);
+  // Bottom sheet (PostSildeOp) visibility
+  const [sheetOpen, setSheetOpen] = useState(true);
+  const [sheetTitle, setSheetTitle] = useState("DOKK1");
   const drag = useRef({ startX: 0, panelAtStart: 0, id: null });
   const carDrag = useRef({
     active: false,
@@ -90,6 +94,17 @@ export default function TestingMAPSTUFFPage() {
   const minSwipe = 50; // px threshold for open/close decision
 
   const isHidden = () => Math.abs(panelX) >= width() - 1; // treat as fully hidden
+
+  // Ensure the sheet is available whenever the panel is fully hidden
+  const wasHiddenRef = useRef(isHidden());
+  useEffect(() => {
+    const nowHidden = isHidden();
+    if (nowHidden && !wasHiddenRef.current) {
+      // Only auto-open when crossing from visible -> hidden
+      setSheetOpen(true);
+    }
+    wasHiddenRef.current = nowHidden;
+  }, [panelX]);
 
   // --- Drag handle events ---
   // Attach global listeners so dragging continues even if the pointer leaves the handle
@@ -154,6 +169,22 @@ export default function TestingMAPSTUFFPage() {
 
   // No tap-to-reveal behavior; the reveal handle is permanently available
   // whenever the panel is fully hidden.
+
+  // Listen for hotspot clicks from the iframe map and update sheet title
+  useEffect(() => {
+    const onMessage = (e) => {
+      try {
+        if (e.origin !== window.location.origin) return; // same-origin guard
+        const d = e.data || {};
+        if (d && d.source === "map-anker" && d.type === "hotspotClick") {
+          const t = (d.title || "").toString().trim();
+          if (t) setSheetTitle(t);
+        }
+      } catch {}
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
 
   // Track active slide based on horizontal scroll position
   useEffect(() => {
@@ -364,8 +395,16 @@ export default function TestingMAPSTUFFPage() {
                   name: "",
                   icon: (
                     <>
-                      <img src="/img/basketball-white.png" alt="Basketball" className="filter-icon-default" />
-                      <img src="/img/basketball-black.png" alt="Basketball" className="filter-icon-active" />
+                      <img
+                        src="/img/basketball-white.png"
+                        alt="Basketball"
+                        className="filter-icon-default"
+                      />
+                      <img
+                        src="/img/basketball-black.png"
+                        alt="Basketball"
+                        className="filter-icon-active"
+                      />
                     </>
                   ),
                 },
@@ -374,8 +413,16 @@ export default function TestingMAPSTUFFPage() {
                   name: "",
                   icon: (
                     <>
-                      <img src="/img/volley-white.png" alt="Volleyball" className="filter-icon-default" />
-                      <img src="/img/volley-black.png" alt="Volleyball" className="filter-icon-active" />
+                      <img
+                        src="/img/volley-white.png"
+                        alt="Volleyball"
+                        className="filter-icon-default"
+                      />
+                      <img
+                        src="/img/volley-black.png"
+                        alt="Volleyball"
+                        className="filter-icon-active"
+                      />
                     </>
                   ),
                 },
@@ -384,8 +431,16 @@ export default function TestingMAPSTUFFPage() {
                   name: "",
                   icon: (
                     <>
-                      <img src="/img/fodbold-white.png" alt="Fodbold" className="filter-icon-default" />
-                      <img src="/img/fodbold-black.png" alt="Fodbold" className="filter-icon-active" />
+                      <img
+                        src="/img/fodbold-white.png"
+                        alt="Fodbold"
+                        className="filter-icon-default"
+                      />
+                      <img
+                        src="/img/fodbold-black.png"
+                        alt="Fodbold"
+                        className="filter-icon-active"
+                      />
                     </>
                   ),
                 },
@@ -394,8 +449,16 @@ export default function TestingMAPSTUFFPage() {
                   name: "",
                   icon: (
                     <>
-                      <img src="/img/tennis-white.png" alt="Tennis" className="filter-icon-default" />
-                      <img src="/img/tennis-black.png" alt="Tennis" className="filter-icon-active" />
+                      <img
+                        src="/img/tennis-white.png"
+                        alt="Tennis"
+                        className="filter-icon-default"
+                      />
+                      <img
+                        src="/img/tennis-black.png"
+                        alt="Tennis"
+                        className="filter-icon-active"
+                      />
                     </>
                   ),
                 },
@@ -480,6 +543,8 @@ export default function TestingMAPSTUFFPage() {
           style={{ left: `${revealLeft}px` }}
           onPointerDown={(e) => {
             // Allow drag-to-open starting from the handle
+            // Close the bottom sheet to avoid interaction conflicts while dragging
+            setSheetOpen(false);
             onDown(e);
           }}
           onPointerMove={onMove}
@@ -489,6 +554,16 @@ export default function TestingMAPSTUFFPage() {
           <span className="tm-reveal-arrow">›</span>
         </button>
       )}
+
+      {/* Post slide-up sheet overlay: only visible when panel is fully hidden */}
+      <PostSildeOp
+        open={isHidden() && sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        header={<div>{sheetTitle}</div>}
+        initialHeight={180}
+        maxHeightPercent={100}
+        disableBackdropClose={true}
+      />
     </div>
   );
 }
