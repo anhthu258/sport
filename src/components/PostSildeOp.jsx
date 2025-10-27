@@ -455,9 +455,7 @@ export default function PostSildeOp({
   return (
     <div
       ref={containerRef}
-      className={`psu-overlay ${
-        disableBackdropClose ? "psu-pass-through" : ""
-      }`}
+      className="psu-overlay"
       role="dialog"
       aria-modal="true"
       aria-label="Detaljer"
@@ -539,8 +537,9 @@ export default function PostSildeOp({
                 ;)
               </div>
               <div className="psu-card-tags">
+                <span className="psu-tag">#Øvet</span>
+                <span className="psu-tag">#Pro</span>
                 <span className="psu-tag">#Ny</span>
-                <span className="psu-tag">#Begynder</span>
               </div>
               {/* Bruger navn - statisk pynt */}
               <div className="psu-card-user">Anonym_ugle</div>
