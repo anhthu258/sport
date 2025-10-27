@@ -545,6 +545,7 @@ export default function TestingMAPSTUFFPage() {
         header={<div>DOKK1</div>}
         initialHeight={180}
         maxHeightPercent={100}
+        disableBackdropClose={true}
       />
     </div>
   );
