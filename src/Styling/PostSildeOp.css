@@ -55,8 +55,8 @@
   position: relative;
   width: 100%;
   background-color: #303030; /* Fast mørk grå baggrundsfarve */
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
   box-shadow: none;
   transition: height 300ms cubic-bezier(0.4, 0, 0.2, 1); /* Google Maps style animation timing */
   cursor: grab; /* Vis at hele sheet kan trækkes */
@@ -518,13 +518,18 @@
 
 /* Drag indicator styling - egen sektion */
 .psu-drag-indicator {
+  position: sticky;
+  top: 0;
+  z-index: 11; /* Højere end title-section */
+  background-color: #303030; /* Samme baggrundsfarve */
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 0 16px 0; /* Større padding for bedre touch target */
-  opacity: 0.7;
+  padding: 8px 0 8px 0; /* Reduceret padding */
   cursor: grab;
-  min-height: 60px; /* Minimum højde for touch target */
+  min-height: 24px; /* Reduceret minimum højde */
+  border-top-left-radius: 24px; /* Afrundede hjørner */
+  border-top-right-radius: 24px; /* Afrundede hjørner */
 }
 
 .psu-drag-indicator:active {
@@ -534,12 +539,16 @@
 .psu-drag-indicator .psu-handle {
   width: 40px;
   height: 4px;
-  background-color: #ccc;
+  background-color: #ccc; /* Tilbage til den synlige grå farve */
   border-radius: 2px;
 }
 
-/* Titel sektion - overskrift og plus knap */
+/* Titel sektion - overskrift og plus knap - FIXED */
 .psu-title-section {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #303030; /* Samme baggrundsfarve som PostSildeOp */
   display: flex;
   justify-content: space-between;
   align-items: center;

@@ -513,9 +513,6 @@ export default function PostSildeOp({
   // RENDER - JSX return
   // ========================================
 
-  // Debug log for open prop
-  console.log("PostSildeOp render - open:", open, "height:", height);
-
   // Hvis sheet ikke er åben, render intet
   if (!open) return null;
 
@@ -581,10 +578,13 @@ export default function PostSildeOp({
             <div className="psu-sports-title">Sportsgrene</div>
             <div className="psu-sports-icons">
               {(() => {
-                // Hent unikke sportsgrene fra posts (kun dem under 24 timer)
+                // Hent unikke sportsgrene fra posts (filtrerede posts for valgt hotspot)
                 const now = new Date();
                 const recentPosts = posts.filter((post) => {
-                  const postTime = new Date(post.timestamp);
+                  // Håndter Firebase timestamp korrekt
+                  const postTime = post.timestamp?.toDate
+                    ? post.timestamp.toDate()
+                    : new Date(post.timestamp);
                   const timeDiff = now - postTime;
                   return timeDiff < 24 * 60 * 60 * 1000; // 24 timer i millisekunder
                 });
@@ -595,12 +595,12 @@ export default function PostSildeOp({
                   ),
                 ];
 
-                // Mapping af sportsgrene til ikoner
+                // Mapping af sportsgrene til ikoner - opdateret til at matche de rigtige filnavne
                 const sportIcons = {
                   Basketball: "/img/basketball-white.png",
                   Fodbold: "/img/fodbold-white.png",
                   Tennis: "/img/tennis-white.png",
-                  Volleyball: "/img/volleyball-white.png",
+                  Volleyball: "/img/volley-white.png", // Rettet til volley-white.png
                   Badminton: "/img/badminton-white.png",
                   Padel: "/img/padel-white.png",
                   Squash: "/img/squash-white.png",
@@ -641,72 +641,6 @@ export default function PostSildeOp({
             </div>
           </div>
 
-          {/* Aktiv nu kort - Pynt opslag */}
-          <div className="psu-activity-card active">
-            <div className="psu-card-header active">
-              <span>Aktiv nu</span>
-              <div className="psu-active-dot"></div>
-            </div>
-            <div className="psu-card-content">
-              <div className="psu-card-title orange">Vi er klar nu her</div>
-              <div className="psu-card-description">
-                Vi er nogle gutter der gerne vil spille fodbold, Kom og vær med
-                ;)
-              </div>
-              <div className="psu-card-tags">
-                <span className="psu-tag">#Øvet</span>
-                <span className="psu-tag">#Pro</span>
-                <span className="psu-tag">#Ny</span>
-              </div>
-              {/* Bruger navn - statisk pynt */}
-              <div className="psu-card-user">Anonym_ugle</div>
-              <div className="psu-card-stats">
-                <div className="psu-stats-container">
-                  <div className="psu-stat-element">
-                    <div
-                      className={`psu-stat-square star ${
-                        interestedStates.active ? "active" : ""
-                      }`}
-                      onClick={() => handleInterestedClick("active")}
-                      style={{ cursor: "pointer" }}
-                    >
-                      {interestedStates.active && (
-                        <img
-                          src="/img/star-orange.png"
-                          alt="Star"
-                          className="psu-stat-icon-large"
-                        />
-                      )}
-                    </div>
-                    <div className="psu-stat-text">
-                      {getInterestedCount("active")} interesseret
-                    </div>
-                  </div>
-                  <div className="psu-stat-element">
-                    <div
-                      className={`psu-stat-square check ${
-                        participatingStates.active ? "active" : ""
-                      }`}
-                      onClick={() => handleParticipatingClick("active")}
-                      style={{ cursor: "pointer" }}
-                    >
-                      {participatingStates.active && (
-                        <img
-                          src="/img/check-orange.png"
-                          alt="Check"
-                          className="psu-stat-icon-large"
-                        />
-                      )}
-                    </div>
-                    <div className="psu-stat-text">
-                      {getParticipatingCount("active")} deltager
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Loading state */}
           {loading && (
             <div className="psu-loading">
@@ -730,7 +664,10 @@ export default function PostSildeOp({
               .filter((post) => {
                 // Filtrer posts der er under 24 timer gamle
                 const now = new Date();
-                const postTime = new Date(post.timestamp);
+                // Håndter Firebase timestamp korrekt
+                const postTime = post.timestamp?.toDate
+                  ? post.timestamp.toDate()
+                  : new Date(post.timestamp);
                 const timeDiff = now - postTime;
                 const isUnder24Hours = timeDiff < 24 * 60 * 60 * 1000; // 24 timer i millisekunder
                 return isUnder24Hours;
@@ -738,7 +675,10 @@ export default function PostSildeOp({
               .map((post) => {
                 // Bestem om posten er aktiv (inden for 2 timer)
                 const now = new Date();
-                const postTime = new Date(post.timestamp);
+                // Håndter Firebase timestamp korrekt
+                const postTime = post.timestamp?.toDate
+                  ? post.timestamp.toDate()
+                  : new Date(post.timestamp);
                 const timeDiff = now - postTime;
                 const isActive = timeDiff < 2 * 60 * 60 * 1000; // 2 timer i millisekunder
 

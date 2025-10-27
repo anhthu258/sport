@@ -63,32 +63,54 @@ export default function TestingMAPSTUFFPage() {
     startScroll: 0,
   });
 
-  const slides = [
-    {
-      title: "DOKK1",
-      meta: "3 aktive",
-      sport: "Basketball",
-      img: "/img/dokk123.png",
-    },
-    {
-      title: "DOKK1",
-      meta: "2 aktive",
-      sport: "Volleyball",
-      img: "/img/dokk123.png",
-    },
-    {
-      title: "DOKK1",
-      meta: "1 aktiv",
-      sport: "Fodbold",
-      img: "/img/dokk123.png",
-    },
-    {
-      title: "DOKK1",
-      meta: "4 aktive",
-      sport: "Tennis",
-      img: "/img/dokk123.png",
-    },
-  ];
+  // Dynamiske slides baseret på Firebase data
+  const slides = useMemo(() => {
+    if (!posts.length) {
+      // Fallback slides hvis ingen posts
+      return [
+        {
+          title: "Ingen aktivitet",
+          meta: "0 aktive",
+          sport: "Ingen",
+          img: "/img/dokk123.png",
+        },
+      ];
+    }
+
+    // Gruppér posts efter hotspotId og sport
+    const groupedPosts = posts.reduce((acc, post) => {
+      const key = `${post.hotspotId}-${post.sport}`;
+      if (!acc[key]) {
+        acc[key] = {
+          hotspotId: post.hotspotId,
+          sport: post.sport,
+          posts: [],
+        };
+      }
+      acc[key].posts.push(post);
+      return acc;
+    }, {});
+
+    // Konverter til slides format
+    return Object.values(groupedPosts).map((group, index) => {
+      const activeCount = group.posts.filter((post) => {
+        const now = new Date();
+        // Håndter Firebase timestamp korrekt
+        const postTime = post.timestamp?.toDate
+          ? post.timestamp.toDate()
+          : new Date(post.timestamp);
+        const timeDiff = now - postTime;
+        return timeDiff < 2 * 60 * 60 * 1000; // 2 timer
+      }).length;
+
+      return {
+        title: group.hotspotId || "Ukendt lokation",
+        meta: `${activeCount} ${activeCount === 1 ? "aktiv" : "aktive"}`,
+        sport: group.sport,
+        img: "/img/dokk123.png", // Standard billede
+      };
+    });
+  }, [posts]);
 
   // --- Geometry helpers ---
   const width = useCallback(
@@ -209,7 +231,7 @@ export default function TestingMAPSTUFFPage() {
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [isHidden]);
+  }, [isHidden, posts]);
 
   // Track active slide based on horizontal scroll position
   useEffect(() => {
@@ -236,7 +258,14 @@ export default function TestingMAPSTUFFPage() {
     const unsubscribe = onSnapshot(
       collection(db, "posts"),
       (snap) => {
-        const list = snap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
+        const list = snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() || {}),
+          // Konverter Firebase timestamp til JavaScript Date
+          timestamp: d.data().timestamp?.toDate
+            ? d.data().timestamp.toDate()
+            : d.data().timestamp,
+        }));
         setPosts(list);
         setLoadingPosts(false);
       },
