@@ -252,6 +252,11 @@
   padding: 0 12px;
 }
 
+/* Ensure PostSildeOp stays below the reveal handle on this page */
+.tm-root .psu-overlay {
+  z-index: 1 !important; /* map (0) < sheet (1) < reveal handle (2) */
+}
+
 /* styling for filter buttons */
 .filter__btn {
   width: 64px;
