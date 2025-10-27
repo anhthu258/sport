@@ -455,7 +455,9 @@ export default function PostSildeOp({
   return (
     <div
       ref={containerRef}
-      className={`psu-overlay ${disableBackdropClose ? "psu-pass-through" : ""}`}
+      className={`psu-overlay ${
+        disableBackdropClose ? "psu-pass-through" : ""
+      }`}
       role="dialog"
       aria-modal="true"
       aria-label="Detaljer"

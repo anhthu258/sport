@@ -52,6 +52,7 @@ export default function TestingMAPSTUFFPage() {
   const [postsError, setPostsError] = useState(null);
   // Bottom sheet (PostSildeOp) visibility
   const [sheetOpen, setSheetOpen] = useState(true);
+  const [sheetTitle, setSheetTitle] = useState("DOKK1");
   const drag = useRef({ startX: 0, panelAtStart: 0, id: null });
   const carDrag = useRef({
     active: false,
@@ -168,6 +169,22 @@ export default function TestingMAPSTUFFPage() {
 
   // No tap-to-reveal behavior; the reveal handle is permanently available
   // whenever the panel is fully hidden.
+
+  // Listen for hotspot clicks from the iframe map and update sheet title
+  useEffect(() => {
+    const onMessage = (e) => {
+      try {
+        if (e.origin !== window.location.origin) return; // same-origin guard
+        const d = e.data || {};
+        if (d && d.source === "map-anker" && d.type === "hotspotClick") {
+          const t = (d.title || "").toString().trim();
+          if (t) setSheetTitle(t);
+        }
+      } catch {}
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
 
   // Track active slide based on horizontal scroll position
   useEffect(() => {
@@ -542,7 +559,7 @@ export default function TestingMAPSTUFFPage() {
       <PostSildeOp
         open={isHidden() && sheetOpen}
         onClose={() => setSheetOpen(false)}
-        header={<div>DOKK1</div>}
+        header={<div>{sheetTitle}</div>}
         initialHeight={180}
         maxHeightPercent={100}
         disableBackdropClose={true}
