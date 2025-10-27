@@ -352,15 +352,53 @@ export default function TestingMAPSTUFFPage() {
             ))}
           </div>
 
+          {/* Filter component for selecting sport */}
+
           <div className="tm-activities">
             <Filter
               selectedSport={selectedSport}
               onFilterChange={({ sportId }) => setSelectedSport(sportId)}
               sports={[
-                { id: "basketball", name: "Basketball" },
-                { id: "football", name: "Fodbold" },
-                { id: "tennis", name: "Tennis" },
-                { id: "volleyball", name: "Volleyball" },
+                {
+                  id: "Basketball",
+                  name: "",
+                  icon: (
+                    <>
+                      <img src="/img/basketball-white.png" alt="Basketball" className="filter-icon-default" />
+                      <img src="/img/basketball-black.png" alt="Basketball" className="filter-icon-active" />
+                    </>
+                  ),
+                },
+                {
+                  id: "Volleyball",
+                  name: "",
+                  icon: (
+                    <>
+                      <img src="/img/volley-white.png" alt="Volleyball" className="filter-icon-default" />
+                      <img src="/img/volley-black.png" alt="Volleyball" className="filter-icon-active" />
+                    </>
+                  ),
+                },
+                {
+                  id: "Fodbold",
+                  name: "",
+                  icon: (
+                    <>
+                      <img src="/img/fodbold-white.png" alt="Fodbold" className="filter-icon-default" />
+                      <img src="/img/fodbold-black.png" alt="Fodbold" className="filter-icon-active" />
+                    </>
+                  ),
+                },
+                {
+                  id: "Tennis",
+                  name: "",
+                  icon: (
+                    <>
+                      <img src="/img/tennis-white.png" alt="Tennis" className="filter-icon-default" />
+                      <img src="/img/tennis-black.png" alt="Tennis" className="filter-icon-active" />
+                    </>
+                  ),
+                },
               ]}
             />
           </div>

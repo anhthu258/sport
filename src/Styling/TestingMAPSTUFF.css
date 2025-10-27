@@ -238,3 +238,110 @@
   line-height: 1;
   transform: translateX(1px); /* optical alignment */
 }
+
+
+
+/* filter styling */
+
+
+.filter {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  padding: 0 12px;
+}
+
+/* styling for filter buttons */
+.filter__btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: visible;
+}
+
+/* Background layer styling using ::before pseudo-element */
+.filter__btn::before {
+  content: "";
+  position: absolute;
+  width: 220%;
+  height: 220%;
+  border-radius: 50%;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.filter__btn.is-active::before {
+  opacity: 1;
+}
+
+/* default state - show white icon, hide black icon */
+.filter__btn .filter-icon-default {
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.filter__btn .filter-icon-active {
+  display: none;
+  position: relative;
+  z-index: 1;
+}
+
+/* active state - show black icon on colored background, hide white icon */
+.filter__btn.is-active .filter-icon-default {
+  display: none;
+}
+
+.filter__btn.is-active .filter-icon-active {
+  display: block;
+}
+
+/* Basketball - Orange background */
+.filter__btn.is-active:nth-child(1)::before {
+  background-image: url("/img/orange-bg.png");
+}
+
+/* Volleyball - Blue background */
+.filter__btn.is-active:nth-child(2)::before {
+  background-image: url("/img/blue-bg.png");
+}
+
+/* Fodbold - Green background */
+.filter__btn.is-active:nth-child(3)::before {
+  background-image: url("/img/white-bg.png");
+}
+
+/* Tennis - Green background */
+.filter__btn.is-active:nth-child(4)::before {
+  background-image: url("/img/green-bg.png");
+}
+
+/* styling for images inside filter buttons */
+.filter__btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.filter__btn span:last-child {
+  display: none; /* Hide the text label */
+}

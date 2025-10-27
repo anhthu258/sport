@@ -19,7 +19,18 @@
  * @param {ReactNode} children - Hovedindhold
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
+// Firebase imports for Firestore data
+import { db } from "../assets/firebase"; // Firebase config (firestore)
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  limit,
+} from "firebase/firestore"; // Firestore operations
 import "../Styling/PostSildeOp.css";
+import "../pages/Opret_post.jsx";
 
 export default function PostSildeOp({
   open = false, // Om bottom sheet er åben
@@ -43,6 +54,102 @@ export default function PostSildeOp({
   const [height, setHeight] = useState(initialHeight); // Aktuel højde af bottom sheet
   const [isDragging, setIsDragging] = useState(false); // Om brugeren trækker i sheet lige nu
   const [isAtTop, setIsAtTop] = useState(false); // Om sheet er helt oppe (for scrolling)
+
+  // State for stats interactions - dynamisk baseret på post IDs
+  const [interestedStates, setInterestedStates] = useState({});
+  const [participatingStates, setParticipatingStates] = useState({});
+
+  // State for user data - Firebase integration (fjernet da vi bruger post.userName direkte)
+  // const [currentUser, setCurrentUser] = useState(null); // Firebase auth bruger objekt
+  // const [userProfile, setUserProfile] = useState(null); // Firestore profil data (username, email, etc.)
+
+  // State for posts data - Firestore integration
+  const [posts, setPosts] = useState([]); // Array af posts fra Firestore
+  const [loading, setLoading] = useState(true); // Loading state for posts
+
+  // Navigation hook
+  const navigate = useNavigate();
+
+  // Base counts for each post - dynamisk baseret på post data
+  const getBaseCounts = (postId) => {
+    // Særlig case for "active" pynt opslag
+    if (postId === "active") {
+      return {
+        interested: 2,
+        participating: 3,
+      };
+    }
+
+    // Generer tilfældige tal baseret på post ID for konsistens
+    const seed = postId
+      .split("")
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return {
+      interested: (seed % 5) + 1, // 1-5 interesserede
+      participating: (seed % 4) + 2, // 2-5 deltagere
+    };
+  };
+
+  // ========================================
+  // CLICK HANDLERS FOR STATS
+  // ========================================
+
+  const handleInterestedClick = (cardType) => {
+    setInterestedStates((prev) => ({
+      ...prev,
+      [cardType]: !prev[cardType],
+    }));
+  };
+
+  const handleParticipatingClick = (cardType) => {
+    setParticipatingStates((prev) => ({
+      ...prev,
+      [cardType]: !prev[cardType],
+    }));
+  };
+
+  // ========================================
+  // UTILITY FUNCTIONS - Hjælpefunktioner
+  // ========================================
+
+  /**
+   * Formaterer tid til HH:MM format
+   * @param {string} timeString - Tid som string (f.eks. "17:30")
+   * @returns {string} Formateret tid
+   */
+  const formatTime = (timeString) => {
+    if (!timeString) return "";
+    // Hvis det allerede er i HH:MM format, return det
+    if (timeString.includes(":")) return timeString;
+    // Ellers prøv at parse det som timestamp
+    return timeString;
+  };
+
+  // formatTimestamp funktion fjernet da vi bruger formatTime i stedet
+
+  // ========================================
+  // DYNAMIC COUNT CALCULATIONS - Beregner tal baseret på bruger interaktion
+  // ========================================
+
+  /**
+   * Beregner antal interesserede baseret på brugerens klik
+   * @param {string} postId - Post ID fra Firestore
+   * @returns {number} Antal interesserede (base + 1 hvis bruger har klikket)
+   */
+  const getInterestedCount = (postId) => {
+    const base = getBaseCounts(postId).interested;
+    return interestedStates[postId] ? base + 1 : base;
+  };
+
+  /**
+   * Beregner antal deltagere baseret på brugerens klik
+   * @param {string} postId - Post ID fra Firestore
+   * @returns {number} Antal deltagere (base + 1 hvis bruger har klikket)
+   */
+  const getParticipatingCount = (postId) => {
+    const base = getBaseCounts(postId).participating;
+    return participatingStates[postId] ? base + 1 : base;
+  };
 
   // ========================================
   // UTILITY FUNCTIONS
@@ -107,6 +214,93 @@ export default function PostSildeOp({
     window.addEventListener("keydown", onKey); // Tilføj event listener
     return () => window.removeEventListener("keydown", onKey); // Fjern event listener når komponenten unmountes
   }, [open, onClose]);
+
+  // Firebase Authentication Listener fjernet da vi bruger post.userName direkte fra Firestore
+
+  /**
+   * Firestore Posts Listener - Real-time Database Integration
+   *
+   * Dette useEffect hook håndterer al kommunikation med Firestore database
+   * og sikrer at posts opdateres i real-time når brugere opretter nye opslag.
+   *
+   * Hvordan det virker:
+   * 1. Opretter en query der henter posts fra "posts" collection
+   * 2. Sorterer posts efter timestamp (nyeste først)
+   * 3. Begrænser til 10 nyeste posts for performance
+   * 4. Lytter efter ændringer i real-time med onSnapshot
+   * 5. Opdaterer React state når nye data kommer
+   * 6. Rydder op når komponenten unmountes
+   *
+   * Real-time betyder: Når en bruger opretter et nyt post i Opret_post komponenten,
+   * så dukker det automatisk op i PostSildeOp uden at man skal refreshe siden!
+   */
+  useEffect(() => {
+    // Vis loading state mens data hentes
+    setLoading(true);
+
+    // ========================================
+    // OPRET FIRESTORE QUERY
+    // ========================================
+
+    // Opret query for at hente posts sorteret efter timestamp
+    // Dette er som at sige til Firestore: "Giv mig posts fra 'posts' collection,
+    // sorteret efter timestamp (nyeste først), og begræns til 10 styk"
+    const postsQuery = query(
+      collection(db, "posts"), // Hent fra "posts" collection
+      orderBy("timestamp", "desc"), // Sorter efter timestamp (nyeste først)
+      limit(10) // Begræns til 10 nyeste posts (for performance)
+    );
+
+    // ========================================
+    // REAL-TIME LISTENER SETUP
+    // ========================================
+
+    // onSnapshot lytter efter ændringer i Firestore i real-time
+    // Dette betyder at hver gang nogen opretter, opdaterer eller sletter et post,
+    // så får vi automatisk en opdatering her i komponenten
+    const unsubscribe = onSnapshot(
+      postsQuery, // Query vi oprettede ovenfor
+      (snapshot) => {
+        // Callback der køres når data ændres
+        // ========================================
+        // DATAFORMATERING
+        // ========================================
+
+        // Konverter Firestore dokumenter til JavaScript objekter
+        // snapshot.docs er et array af alle dokumenter der matcher vores query
+        const postsData = snapshot.docs.map((doc) => ({
+          id: doc.id, // Firestore dokument ID (unik identifikator)
+          ...doc.data(), // Alle felter fra dokumentet (title, details, time, etc.)
+          // Konverter Firestore timestamp til JavaScript Date objekt
+          // Dette gør det nemmere at arbejde med datoer i JavaScript
+          timestamp: doc.data().timestamp?.toDate() || new Date(),
+        }));
+
+        // ========================================
+        // STATE OPDATERING
+        // ========================================
+
+        // Opdater React state med de nye posts
+        // Dette trigger en re-render af komponenten med de nye data
+        setPosts(postsData);
+        setLoading(false); // Skjul loading state
+      },
+      (error) => {
+        // Error callback hvis noget går galt
+        console.error("Fejl ved hentning af posts:", error);
+        setLoading(false); // Skjul loading state selv ved fejl
+      }
+    );
+
+    // ========================================
+    // CLEANUP FUNCTION
+    // ========================================
+
+    // Cleanup function - fjern listener når komponenten unmountes
+    // Dette forhindrer memory leaks og unødvendige database calls
+    // Når brugeren navigerer væk fra siden, så stopper vi med at lytte
+    return () => unsubscribe();
+  }, []); // Tom dependency array = kør kun ved første load (ikke ved re-render)
 
   // ========================================
   // DRAG FUNCTIONS - Drag funktionalitet
@@ -299,6 +493,8 @@ export default function PostSildeOp({
                 src="/img/plus.png"
                 alt="Tilføj"
                 className="psu-plus-image"
+                onClick={() => navigate("/opretpost")}
+                style={{ cursor: "pointer" }}
               />
             </div>
           </div>
@@ -323,220 +519,165 @@ export default function PostSildeOp({
             </div>
           </div>
 
-          {/* Aktiv nu kort */}
+          {/* Aktiv nu kort - Pynt opslag */}
           <div className="psu-activity-card active">
             <div className="psu-card-header active">
               <span>Aktiv nu</span>
               <div className="psu-active-dot"></div>
             </div>
             <div className="psu-card-content">
-              <div className="psu-card-title">Vi er klar nu her</div>
+              <div className="psu-card-title orange">Vi er klar nu her</div>
               <div className="psu-card-description">
                 Vi er nogle gutter der gerne vil spille fodbold, Kom og vær med
-              </div>
-              <div className="psu-card-tags">
-                <span className="psu-tag">2v2</span>
-                <span className="psu-tag">hyggespil</span>
-              </div>
-              <div className="psu-card-user">Anonym_ugle</div>
-              <div className="psu-card-stats">
-                <div className="psu-stat">
-                  <img
-                    src="/img/fodbold-white.png"
-                    alt="Fodbold"
-                    className="psu-stat-icon"
-                  />
-                </div>
-                <div className="psu-stat">
-                  <img
-                    src="/img/star-orange.png"
-                    alt="Star"
-                    className="psu-stat-icon"
-                  />
-                  <span>2 interesseret</span>
-                </div>
-                <div className="psu-stat">
-                  <img
-                    src="/img/check-white.png"
-                    alt="Participants"
-                    className="psu-stat-icon"
-                  />
-                  <span>3 deltager</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 17:30 kort */}
-          <div className="psu-activity-card">
-            <div className="psu-card-header">
-              <span>17:30</span>
-            </div>
-            <div className="psu-card-content">
-              <div className="psu-card-title orange">Basket anyone?</div>
-              <div className="psu-card-description">
-                Vi er nogle gutter der gerne vil spille basket, Kom og vær med
                 ;)
               </div>
               <div className="psu-card-tags">
-                <span className="psu-tag orange">#2v2</span>
-                <span className="psu-tag orange">#hygge</span>
+                <span className="psu-tag">#Begynder</span>
               </div>
-              <div className="psu-card-user">Den_seje_and123</div>
+              {/* Bruger navn - statisk pynt */}
+              <div className="psu-card-user">Anonym_ugle</div>
               <div className="psu-card-stats">
-                <div className="psu-stat">
-                  <img
-                    src="/img/basketball-white.png"
-                    alt="Basketball"
-                    className="psu-stat-icon"
-                  />
-                </div>
-                <div className="psu-stat">
-                  <img
-                    src="/img/star-orange.png"
-                    alt="Star"
-                    className="psu-stat-icon"
-                  />
-                  <span>3 interesseret</span>
-                </div>
-                <div className="psu-stat">
-                  <img
-                    src="/img/check-white.png"
-                    alt="Participants"
-                    className="psu-stat-icon"
-                  />
-                  <span>2 deltager</span>
+                <div className="psu-stats-container">
+                  <div className="psu-stat-element">
+                    <div
+                      className={`psu-stat-square star ${
+                        interestedStates.active ? "active" : ""
+                      }`}
+                      onClick={() => handleInterestedClick("active")}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {interestedStates.active && (
+                        <img
+                          src="/img/star-orange.png"
+                          alt="Star"
+                          className="psu-stat-icon-large"
+                        />
+                      )}
+                    </div>
+                    <div className="psu-stat-text">
+                      {getInterestedCount("active")} interesseret
+                    </div>
+                  </div>
+                  <div className="psu-stat-element">
+                    <div
+                      className={`psu-stat-square check ${
+                        participatingStates.active ? "active" : ""
+                      }`}
+                      onClick={() => handleParticipatingClick("active")}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {participatingStates.active && (
+                        <img
+                          src="/img/check-orange.png"
+                          alt="Check"
+                          className="psu-stat-icon-large"
+                        />
+                      )}
+                    </div>
+                    <div className="psu-stat-text">
+                      {getParticipatingCount("active")} deltager
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 18:00 kort */}
-          <div className="psu-activity-card">
-            <div className="psu-card-header">
-              <span>18:00</span>
+          {/* Loading state */}
+          {loading && (
+            <div className="psu-loading">
+              <div className="psu-loading-text">Henter posts...</div>
             </div>
-            <div className="psu-card-content">
-              <div className="psu-card-title orange">Fodbold anyone?</div>
-              <div className="psu-card-description">Kom og vær med ;)</div>
-              <div className="psu-card-tags">
-                <span className="psu-tag orange">#4v4</span>
-                <span className="psu-tag orange">#hygge</span>
-              </div>
-              <div className="psu-card-user">Den_seje_and123</div>
-              <div className="psu-card-stats">
-                <div className="psu-stat">
-                  <img
-                    src="/img/fodbold-white.png"
-                    alt="Fodbold"
-                    className="psu-stat-icon"
-                  />
-                </div>
-                <div className="psu-stat">
-                  <img
-                    src="/img/star-orange.png"
-                    alt="Star"
-                    className="psu-stat-icon"
-                  />
-                  <span>5 interesseret</span>
-                </div>
-                <div className="psu-stat">
-                  <img
-                    src="/img/check-white.png"
-                    alt="Participants"
-                    className="psu-stat-icon"
-                  />
-                  <span>3 deltager</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
 
-          {/* 19:00 kort */}
-          <div className="psu-activity-card">
-            <div className="psu-card-header">
-              <span>19:00</span>
-            </div>
-            <div className="psu-card-content">
-              <div className="psu-card-title orange">Tennis anyone?</div>
-              <div className="psu-card-description">
-                Vi spiller tennis på banerne, kom med!
-              </div>
-              <div className="psu-card-tags">
-                <span className="psu-tag orange">#singles</span>
-                <span className="psu-tag orange">#tennis</span>
-              </div>
-              <div className="psu-card-user">Tennis_pro</div>
-              <div className="psu-card-stats">
-                <div className="psu-stat">
-                  <img
-                    src="/img/tennis-white.png"
-                    alt="Tennis"
-                    className="psu-stat-icon"
-                  />
-                </div>
-                <div className="psu-stat">
-                  <img
-                    src="/img/star-orange.png"
-                    alt="Star"
-                    className="psu-stat-icon"
-                  />
-                  <span>4 interesseret</span>
-                </div>
-                <div className="psu-stat">
-                  <img
-                    src="/img/check-white.png"
-                    alt="Participants"
-                    className="psu-stat-icon"
-                  />
-                  <span>2 deltager</span>
-                </div>
+          {/* Dynamiske posts fra Firestore */}
+          {!loading && posts.length === 0 && (
+            <div className="psu-no-posts">
+              <div className="psu-no-posts-text">Ingen posts endnu</div>
+              <div className="psu-no-posts-subtitle">
+                Opret det første opslag!
               </div>
             </div>
-          </div>
+          )}
 
-          {/* 20:00 kort */}
-          <div className="psu-activity-card">
-            <div className="psu-card-header">
-              <span>20:00</span>
-            </div>
-            <div className="psu-card-content">
-              <div className="psu-card-title orange">Volleyball anyone?</div>
-              <div className="psu-card-description">
-                Beach volleyball på stranden, kom og vær med!
-              </div>
-              <div className="psu-card-tags">
-                <span className="psu-tag orange">#6v6</span>
-                <span className="psu-tag orange">#beach</span>
-              </div>
-              <div className="psu-card-user">Beach_volley</div>
-              <div className="psu-card-stats">
-                <div className="psu-stat">
-                  <img
-                    src="/img/volley-white.png"
-                    alt="Volleyball"
-                    className="psu-stat-icon"
-                  />
+          {/* Render posts fra Firestore */}
+          {!loading &&
+            posts.map((post) => {
+              // Bestem om posten er aktiv (inden for 2 timer)
+              const now = new Date();
+              const postTime = new Date(post.timestamp);
+              const timeDiff = now - postTime;
+              const isActive = timeDiff < 2 * 60 * 60 * 1000; // 2 timer i millisekunder
+
+              return (
+                <div
+                  key={post.id}
+                  className={`psu-activity-card ${isActive ? "active" : ""}`}
+                >
+                  <div
+                    className={`psu-card-header ${isActive ? "active" : ""}`}
+                  >
+                    <span>{isActive ? "Aktiv nu" : formatTime(post.time)}</span>
+                    {isActive && <div className="psu-active-dot"></div>}
+                  </div>
+                  <div className="psu-card-content">
+                    <div className="psu-card-title orange">{post.title}</div>
+                    <div className="psu-card-description">{post.details}</div>
+                    <div className="psu-card-tags">
+                      <span className="psu-tag">#{post.sport}</span>
+                    </div>
+                    {/* Bruger navn fra Firestore */}
+                    <div className="psu-card-user">
+                      {post.userName || "Anonym_ugle"}
+                    </div>
+                    <div className="psu-card-stats">
+                      <div className="psu-stats-container">
+                        <div className="psu-stat-element">
+                          <div
+                            className={`psu-stat-square star ${
+                              interestedStates[post.id] ? "active" : ""
+                            }`}
+                            onClick={() => handleInterestedClick(post.id)}
+                            style={{ cursor: "pointer" }}
+                          >
+                            {interestedStates[post.id] && (
+                              <img
+                                src="/img/star-orange.png"
+                                alt="Star"
+                                className="psu-stat-icon-large"
+                              />
+                            )}
+                          </div>
+                          <div className="psu-stat-text">
+                            {getInterestedCount(post.id)} interesseret
+                          </div>
+                        </div>
+                        <div className="psu-stat-element">
+                          <div
+                            className={`psu-stat-square check ${
+                              participatingStates[post.id] ? "active" : ""
+                            }`}
+                            onClick={() => handleParticipatingClick(post.id)}
+                            style={{ cursor: "pointer" }}
+                          >
+                            {participatingStates[post.id] && (
+                              <img
+                                src="/img/check-orange.png"
+                                alt="Check"
+                                className="psu-stat-icon-large"
+                              />
+                            )}
+                          </div>
+                          <div className="psu-stat-text">
+                            {getParticipatingCount(post.id)} deltager
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="psu-stat">
-                  <img
-                    src="/img/star-orange.png"
-                    alt="Star"
-                    className="psu-stat-icon"
-                  />
-                  <span>8 interesseret</span>
-                </div>
-                <div className="psu-stat">
-                  <img
-                    src="/img/check-white.png"
-                    alt="Participants"
-                    className="psu-stat-icon"
-                  />
-                  <span>6 deltager</span>
-                </div>
-              </div>
-            </div>
-          </div>
+              );
+            })}
 
           {children}
         </div>
