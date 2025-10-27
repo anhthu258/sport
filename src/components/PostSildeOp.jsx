@@ -455,9 +455,7 @@ export default function PostSildeOp({
   return (
     <div
       ref={containerRef}
-      className={`psu-overlay ${
-        disableBackdropClose ? "psu-pass-through" : ""
-      }`}
+      className="psu-overlay"
       role="dialog"
       aria-modal="true"
       aria-label="Detaljer"
@@ -539,7 +537,9 @@ export default function PostSildeOp({
                 ;)
               </div>
               <div className="psu-card-tags">
-                <span className="psu-tag">#Begynder</span>
+                <span className="psu-tag">#Øvet</span>
+                <span className="psu-tag">#Pro</span>
+                <span className="psu-tag">#Ny</span>
               </div>
               {/* Bruger navn - statisk pynt */}
               <div className="psu-card-user">Anonym_ugle</div>
@@ -631,7 +631,13 @@ export default function PostSildeOp({
                     <div className="psu-card-title orange">{post.title}</div>
                     <div className="psu-card-description">{post.details}</div>
                     <div className="psu-card-tags">
-                      <span className="psu-tag">#{post.sport}</span>
+                      {/* Vis kun tags fra Firestore, ikke sport */}
+                      {post.tags &&
+                        post.tags.map((tag, index) => (
+                          <span key={index} className="psu-tag">
+                            #{tag}
+                          </span>
+                        ))}
                     </div>
                     {/* Bruger navn fra Firestore */}
                     <div className="psu-card-user">
