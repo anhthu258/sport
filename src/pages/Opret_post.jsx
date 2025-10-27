@@ -14,6 +14,9 @@ export default function OpretPost() {
   const [details, setDetails] = useState(""); // Beskrivelse
   const [message, setMessage] = useState(""); // Beskeder til brugeren (poset eller ej)
 
+
+  //Tags state
+  const [tags, setTags] = useState([])
   // State for dropdown valgmuligheder hentet fra Firestore
   const [sportsOptions, setSportsOptions] = useState([]); // Liste af tilgængelige sportsgrene
   const [locationOptions, setLocationOptions] = useState([]); // Liste af tilgængelige lokationer
@@ -77,6 +80,17 @@ export default function OpretPost() {
       setMessage("Der opstod en fejl – prøv igen senere.");
     }
   }
+  async function handleTagClick(e) {
+    e.preventDefault();
+    const tagValue = e.target.value;
+
+    if(tags.includes(tagValue)) { 
+        setTags(tags.filter(tag => tag !== tagValue))
+    } else{
+        setTags([...tags, tagValue])
+    }
+    console.log("Opdaterede tags:", tags);
+  }
 
   // Håndterer når brugeren indsender formularen
   // Dette er hovedfunktionen der gemmer det nye opslag i Firestore
@@ -94,7 +108,7 @@ export default function OpretPost() {
 
     // Valider at påkrævede felter er udfyldt
     // Tjek at de vigtigste felter ikke er tomme
-    if (!title || !sport || !location) {
+    if (!title || !sport || !location || tags.length===0) {
       setMessage("Udfyld venligst titel, sportsgren og lokation");
       return; // Stop funktionen hvis validering fejler
     }
@@ -107,6 +121,7 @@ export default function OpretPost() {
       location,
       time,
       details,
+      tags,
     });
 
     // Gem opslaget i Firestore "posts" collection
@@ -116,6 +131,7 @@ export default function OpretPost() {
       userName: userData.username, //Username, som brugeren selv har tastet ind
       hotspotId: location, // Reference til valgt lokation (Firestore dokument ID)
       title, // Postens titel (fra input felt)
+      tags,
       details, // Beskrivelse (fra textarea)
       time, // Tidspunkt for aktiviteten (fra time input)
       sport, // Reference til valgt sportsgren (fra dropdown)
@@ -131,6 +147,7 @@ export default function OpretPost() {
     setTime("");
     setDetails("");
     setSportsOptions([]);
+    setTags([]);
 
     //sletter de posts, der er fra i går
     const postsSnapshot = await getDocs(collection(db, "posts")); //henter alle posts
@@ -251,6 +268,15 @@ postsSnapshot.docs.forEach(async (postDoc) => { //for hvert post
               onChange={(e) => setTime(e.target.value)} // Opdater time state
             />
           </div>
+        </div>
+        {/* Tags */ }
+        <div className="form-group-tags">
+            <label className="form-label">Tags</label>
+            <div className="tag-group">
+            <button className={`tags ${tags.includes("ny") ? "activetag" : ""}`} type="button"value="ny"onClick={handleTagClick}>Ny</button>
+            <button className={`tags ${tags.includes("øvet") ? "activetag" : ""}`} type="button" value="øvet" onClick={handleTagClick}>Øvet</button>
+            <button className={`tags ${tags.includes("pro") ? "activetag" : ""}`} type="button" value="pro" onClick={handleTagClick}>Pro</button>
+            </div>
         </div>
 
         {/* Detaljer textarea - valgfrit felt for yderligere beskrivelse */}

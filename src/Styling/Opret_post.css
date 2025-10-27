@@ -155,6 +155,22 @@
   background: #ff5a1f;
 }
 
+.tag-group{
+  display: flex;
+  justify-content: center;
+  justify-content: space-evenly;
+}
+.tags{
+  padding: 5px;
+  border-radius: 0px;
+  border-style: none;
+  background-color: #f9f9f9;
+}
+.activetag{
+  background-color: #ff5a1f;
+}
+
+
 /* ========================================
    FEEDBACK OG BESKEDER
    ======================================== */
