@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "../styling/Opret_post.css";
 import { serverTimestamp } from "firebase/firestore";
 import { db, auth } from "../assets/firebase";
-import { collection, addDoc, getDocs, doc, getDoc, deleteDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, getDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 
 export default function OpretPost() {
   // State for formularens input felter
@@ -126,7 +126,7 @@ export default function OpretPost() {
 
     // Gem opslaget i Firestore "posts" collection
     // Dette opretter et nyt dokument i "posts" collectionen
-    await addDoc(collection(db, "posts"), {
+    const newPostRef = await addDoc(collection(db, "posts"), {
       creatorId: auth.currentUser.uid, //Nuværende userID
       userName: userData.username, //Username, som brugeren selv har tastet ind
       hotspotId: location, // Reference til valgt lokation (Firestore dokument ID)
@@ -138,6 +138,11 @@ export default function OpretPost() {
       timestamp: serverTimestamp(), // Automatisk tidsstempel fra Firestore server
     });
 
+    // Tilføj til hotspot
+const hotspotRef = doc(db, "hotspots", location);
+await updateDoc(hotspotRef, {
+  posts: arrayUnion(newPostRef.id),
+});
     // Vis succesbesked og ryd formularen
     // Efter succesfuld oprettelse, vis besked og nulstil alle felter
     setMessage("Opslag oprettet!");
@@ -149,26 +154,37 @@ export default function OpretPost() {
     setSportsOptions([]);
     setTags([]);
 
-    //sletter de posts, der er fra i går
-    const postsSnapshot = await getDocs(collection(db, "posts")); //henter alle posts
-const today = new Date(); //konstant, der er baseret på den nuværende dato, klokkeslet mm
+    /*===================================
+    *sletter de posts, der er fra i går
+    ===================================*/
+   const postsSnapshot = await getDocs(collection(db, "posts")); // henter alle posts
+const today = new Date(); // dagens dato
 
-postsSnapshot.docs.forEach(async (postDoc) => { //for hvert post
-  const postData = postDoc.data(); //opret postData
+postsSnapshot.docs.forEach(async (postDoc) => { //for hvert postDoc
+  const postData = postDoc.data(); //lav en konstant
 
-  if (!postData.timestamp) return; //hvis den her data ikke har et timestamp, så ignorer det
+  if (!postData.timestamp) return; //hvis der ikke er en timestamp, så ignorer(Det er så der er nogle faste posts til at vise appen)
 
-  const postTimestamp = postData.timestamp.toDate(); //konstant baseret på timestamp data på de aktuelle posts
+  const postTimestamp = postData.timestamp.toDate(); //Postets timestamp
 
-  // Sammenlign kun dato (ikke klokkeslæt)
   const isFromAnotherDay =
     postTimestamp.getDate() !== today.getDate() ||
     postTimestamp.getMonth() !== today.getMonth() ||
-    postTimestamp.getFullYear() !== today.getFullYear(); //Hvis postens år, måned og dag ikke er det samme som idags, så = isFromAnotherDay
+    postTimestamp.getFullYear() !== today.getFullYear(); //Bliver til konstanten, hvis den ikke har det samme år, måned og dato
 
-  // Hvis opslaget er fra en tidligere dag => slet det
-  if (isFromAnotherDay) { //Hvis en post hører under "isFromAnotherDay", så slet
+  if (isFromAnotherDay) { //hvis det er fra en anden dag
+    // slet post-ID fra dets hotspot-"mappe"
+    if (postData.hotspotId) {
+      const hotspotRef = doc(db, "hotspots", postData.hotspotId);
+      await updateDoc(hotspotRef, {
+        posts: arrayRemove(postDoc.id) // Fjern post-ID fra arrayet
+      });
+    }
+
+    // Derefter: slet selve posten
     await deleteDoc(doc(db, "posts", postDoc.id));
+
+    console.log(`Slettede post ${postDoc.id} og fjernede den fra hotspot ${postData.hotspotId}`);
   }
 });
 
