@@ -36,6 +36,10 @@
 .tm-panel::after {
   content: "";
   position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -75vh; 
+  height: 100vh; 
 }
 
 
