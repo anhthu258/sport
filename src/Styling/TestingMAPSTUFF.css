@@ -24,6 +24,17 @@
   transform: translate3d(var(--panel-x, 0), 0, 0);
   transition: transform 200ms ease;
 }
+
+
+/* Keep content above decorative pseudo-elements */
+.tm-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+
+
 .tm-panel.dragging {
   transition: none;
 }
