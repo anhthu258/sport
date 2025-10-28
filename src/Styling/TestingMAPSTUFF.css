@@ -274,7 +274,7 @@
   overflow: visible;
 }
 
-/* Background layer styling using ::before pseudo-element */
+/*  Button Baggrund lag styling ved hjælp af ::before pseudo-element */
 .filter__btn::before {
   content: "";
   position: absolute;
@@ -297,7 +297,7 @@
   opacity: 1;
 }
 
-/* default state - hvis hvidt ikon, gem sort ikon og baggrund */
+/* default state - vis hvidt ikon, gem sort ikon og baggrund */
 .filter__btn .filter-icon-default {
   display: block;
   position: relative;
@@ -350,3 +350,9 @@
 .filter__btn span:last-child {
   display: none; /* Hide the text label */
 }
+
+
+/* discover baggrund styling */
+
+
+
