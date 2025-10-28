@@ -26,13 +26,17 @@
 }
 
 
-/* Keep content above decorative pseudo-elements */
+/* Behold content over dekorative pseudo-elementer */
 .tm-panel > * {
   position: relative;
   z-index: 1;
 }
 
-
+/* Bottom dark concrete section (like .login-container::before) */
+.tm-panel::after {
+  content: "";
+  position: absolute;
+}
 
 
 .tm-panel.dragging {
