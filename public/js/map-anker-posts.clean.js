@@ -141,6 +141,66 @@ map.on("zoomend", () => {
   }
 });
 
+// Listen for focus requests from parent page (Discover slider)
+window.addEventListener("message", (e) => {
+  try {
+    const isSameOrigin = e.origin === window.location.origin;
+    const isLocal =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    const isDevOk =
+      isLocal &&
+      (e.origin.includes("localhost") || e.origin.includes("127.0.0.1"));
+    if (!isSameOrigin && !isDevOk) return;
+    const d = e.data || {};
+    if (!d || d.type !== "focusHotspot") return;
+
+    const q = (d.hotspotId || d.query || "").toString().trim().toLowerCase();
+    if (!q) return;
+
+    // Find hotspot by id or common title fields
+    let target = null;
+    if (_hotspots.has(q)) target = _hotspots.get(q);
+    if (!target) {
+      for (const h of _hotspots.values()) {
+        const candidates = [h.id, h.title, h.name, h.navn, h.placeName]
+          .map((v) => (v || "").toString().trim().toLowerCase())
+          .filter(Boolean);
+        if (candidates.includes(q)) {
+          target = h;
+          break;
+        }
+      }
+    }
+    if (!target) return;
+
+    const pos = parseDMSPair(target.koordinater);
+    if (!pos) return;
+
+    const current = map.getZoom();
+    const MIN_ZOOM_DELTA = 0.6;
+    const focusZoom = Math.min(
+      map.getMaxZoom(),
+      Math.max(FOCUS_Z, current + MIN_ZOOM_DELTA)
+    );
+    const focusBearing = normalizeBearing(
+      map.getBearing() + FOCUS_BEARING_DELTA
+    );
+
+    map.flyTo({
+      center: [pos.lng, pos.lat],
+      zoom: focusZoom,
+      pitch: FOCUS_PITCH,
+      bearing: focusBearing,
+      speed: 0.9,
+      curve: 1.6,
+      essential: true,
+    });
+  } catch {
+    // ignore
+  }
+});
+
 // Notify parent (React app) when the user clicks the bare map background.
 // Marker clicks are handled on their own DOM elements and call stopPropagation,
 // so they won't trigger this handler. This lets the parent show a UI affordance
