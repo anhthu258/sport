@@ -7,16 +7,18 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 export default function Signup() {
   const MAX_USERNAME = 25; // <-- maks længde for brugernavn
   const MIN_PASSWORD = 8; // <-- minimum længde for password
-// lokal state for formularfelter
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+  // lokal state for formularfelter
+  const [username, setUsername] = useState(''); // <-- brugernavn state
+  const [email, setEmail] = useState(''); // <-- email state
+  const [password, setPassword] = useState('');  // <-- password state
+  const [error, setError] = useState('');  // <-- fejlbesked
+  const [success, setSuccess] = useState(''); // <-- success notification
+  const navigate = useNavigate(); // <-- hook til navigation
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     // simpel validering
     if (!username || !email || !password) {
@@ -53,8 +55,9 @@ export default function Signup() {
         password,
       });
 
-      // naviger efter succes
-      navigate('/loginform');
+      // viser en kort success besked før redirect til login holder i 1200ms
+      setSuccess('Account created');
+      setTimeout(() => navigate('/login', { state: { view: 'login' } }), 1200);
     } catch (err) {
       console.error(err);
       // make firebase error code more readable like template does
@@ -105,7 +108,9 @@ export default function Signup() {
 
         {/* Vis fejlbesked hvis der er en */}
         {error && <p className="error">{error}</p>}
-          <button type="submit" className="btn">Create account</button>
+        {/* Vis success besked når man fik lavet sin konto */}
+        {success && <p className="success" role="status">{success}</p>}
+        <button type="submit" className="btn">Create account</button>
       </form>
     </section>
   );
