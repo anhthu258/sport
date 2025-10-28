@@ -1,43 +1,59 @@
 /**
- * PostSildeOp - Google Maps Style Bottom Sheet Component
+ * ========================================
+ * POSTSILDEOP - GOOGLE MAPS STYLE BOTTOM SHEET
+ * ========================================
  *
- * En avanceret bottom sheet komponent der opfører sig præcis som Google Maps.
- * Inkluderer drag funktionalitet, snap positioner, og smart scrolling.
+ * Dette er en avanceret bottom sheet komponent der opfører sig præcis som Google Maps.
+ * Den kan trækkes op og ned, og har tre forskellige positioner: collapsed, peek og fuldt åben.
  *
- * Features:
- * - Drag to resize (Google Maps style)
- * - Three snap positions (collapsed, peek, full)
- * - Smart content scrolling when at top
- * - Touch optimized for mobile
- * - Sports activities display
+ * HVAD GØR DEN?
+ * - Viser posts fra Firestore database i real-time
+ * - Kan trækkes op og ned med fingeren (som Google Maps)
+ * - Har tre snap positioner: collapsed (lille), peek (mellem), full (stor)
+ * - Viser sportsgrene baseret på aktuelle posts
+ * - Tillader brugere at klikke på "interesseret" og "deltager" knapper
  *
- * @param {boolean} open - Om bottom sheet er åben
+ * HVOR BRUGES DEN?
+ * - Når brugeren klikker på et hotspot på kortet
+ * - Viser alle posts for det valgte område
+ * - Giver mulighed for at oprette nye posts
+ *
+ * @param {boolean} open - Om bottom sheet er åben (true/false)
  * @param {function} onClose - Funktion der kaldes når sheet lukkes
- * @param {number} initialHeight - Start højde i pixels (default: 180)
- * @param {number} maxHeightPercent - Max højde som procent af skærm (default: 100)
- * @param {ReactNode} header - Header indhold (f.eks. "DOKK1")
- * @param {ReactNode} children - Hovedindhold
+ * @param {number} initialHeight - Start højde i pixels (standard: 180px)
+ * @param {number} maxHeightPercent - Max højde som procent af skærm (standard: 100%)
+ * @param {boolean} disableBackdropClose - Hvis true, lukker ikke ved klik udenfor
+ * @param {Array} externalPosts - Eksterne posts (hvis ikke givet, hentes fra Firestore)
+ * @param {boolean} externalLoading - Loading state for eksterne posts
+ * @param {string} hotspotName - Navn på det valgte hotspot (f.eks. "DOKK1")
  */
+// ========================================
+// IMPORTS - Hvad vi har brug for fra React og Firebase
+// ========================================
 import { useCallback, useEffect, useRef, useState } from "react";
-// import { useNavigate } from "react-router"; // Ikke længere brugt
-// Firebase imports for Firestore data
+
+// Firebase imports - til at hente data fra database
 import { db } from "../assets/firebase"; // Firebase config (firestore)
 import {
-  collection,
-  onSnapshot,
-  query,
-  orderBy,
-  limit,
+  collection, // Hent en samling af dokumenter
+  onSnapshot, // Lyt efter ændringer i real-time
+  query, // Opret en søgning
+  orderBy, // Sorter resultater
+  limit, // Begræns antal resultater
 } from "firebase/firestore"; // Firestore operations
+
+// CSS styling for komponenten
 import "../Styling/PostSildeOp.css";
 import "../pages/Opret_post.jsx";
 
+// ========================================
+// KOMPONENT DEFINITION - Hovedfunktionen
+// ========================================
 export default function PostSildeOp({
-  open = false, // Om bottom sheet er åben
+  open = false, // Om bottom sheet er åben (true/false)
   onClose, // Funktion der kaldes når sheet lukkes
   initialHeight = 180, // Start højde i pixels - collapsed state
   maxHeightPercent = 100, // Max højde som procent af skærm
-  children, // Hovedindhold
   disableBackdropClose = false, // Hvis true, klik udenfor lukker ikke og klik passerer igennem til baggrunden
   externalPosts = null, // Eksterne posts (hvis ikke givet, hentes fra Firestore)
   externalLoading = false, // Loading state for eksterne posts
@@ -46,6 +62,7 @@ export default function PostSildeOp({
   // ========================================
   // REFS - DOM elementer og drag state
   // ========================================
+  // Refs er som "referencer" til HTML elementer - vi bruger dem til at få adgang til DOM elementer
   const containerRef = useRef(null); // Overlay container - dækker hele skærmen
   const sheetRef = useRef(null); // Bottom sheet element - selve den trækbare del
   const startYRef = useRef(0); // Start Y position ved drag - hvor brugeren startede at trække
@@ -54,30 +71,36 @@ export default function PostSildeOp({
   // ========================================
   // STATE - Sheet højde og drag status
   // ========================================
+  // State er data der kan ændre sig og får komponenten til at re-rendere når det ændres
   const [height, setHeight] = useState(initialHeight); // Aktuel højde af bottom sheet
   const [isDragging, setIsDragging] = useState(false); // Om brugeren trækker i sheet lige nu
   const [isAtTop, setIsAtTop] = useState(false); // Om sheet er helt oppe (for scrolling)
 
   // State for stats interactions - dynamisk baseret på post IDs
-  const [interestedStates, setInterestedStates] = useState({});
-  const [participatingStates, setParticipatingStates] = useState({});
-
-  // State for user data - Firebase integration (fjernet da vi bruger post.userName direkte)
-  // const [currentUser, setCurrentUser] = useState(null); // Firebase auth bruger objekt
-  // const [userProfile, setUserProfile] = useState(null); // Firestore profil data (username, email, etc.)
+  // Disse holder styr på hvilke posts brugeren har klikket på
+  const [interestedStates, setInterestedStates] = useState({}); // Hvilke posts brugeren er interesseret i
+  const [participatingStates, setParticipatingStates] = useState({}); // Hvilke posts brugeren deltager i
 
   // State for posts data - Firestore integration
+  // Disse holder styr på posts fra databasen
   const [internalPosts, setInternalPosts] = useState([]); // Array af posts fra Firestore
   const [internalLoading, setInternalLoading] = useState(true); // Loading state for posts
 
   // Brug eksterne posts hvis givet, ellers interne posts
+  // Dette gør komponenten fleksibel - den kan vise posts fra forskellige kilder
   const posts = externalPosts !== null ? externalPosts : internalPosts;
   const loading = externalPosts !== null ? externalLoading : internalLoading;
 
-  // Navigation hook - ikke længere brugt da der ikke er header
-  // const navigate = useNavigate();
+  // ========================================
+  // UTILITY FUNCTIONS - Hjælpefunktioner
+  // ========================================
 
-  // Base counts for each post - dynamisk baseret på post data
+  /**
+   * Genererer base counts for hver post - dynamisk baseret på post data
+   * Dette giver hver post et konsistent antal interesserede og deltagere
+   * @param {string} postId - Post ID fra Firestore
+   * @returns {object} Objekt med interested og participating counts
+   */
   const getBaseCounts = (postId) => {
     // Særlig case for "active" pynt opslag
     if (postId === "active") {
@@ -88,6 +111,7 @@ export default function PostSildeOp({
     }
 
     // Generer tilfældige tal baseret på post ID for konsistens
+    // Dette sikrer at samme post altid får samme tal
     const seed = postId
       .split("")
       .reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -98,25 +122,35 @@ export default function PostSildeOp({
   };
 
   // ========================================
-  // CLICK HANDLERS FOR STATS
+  // CLICK HANDLERS FOR STATS - Håndterer brugerens klik på knapper
   // ========================================
 
+  /**
+   * Håndterer klik på "interesseret" knappen
+   * Toggler om brugeren er interesseret i posten
+   * @param {string} cardType - Post ID (cardType er det samme som postId)
+   */
   const handleInterestedClick = (cardType) => {
     setInterestedStates((prev) => ({
       ...prev,
-      [cardType]: !prev[cardType],
+      [cardType]: !prev[cardType], // Toggle: hvis true bliver false, hvis false bliver true
     }));
   };
 
+  /**
+   * Håndterer klik på "deltager" knappen
+   * Toggler om brugeren deltager i posten
+   * @param {string} cardType - Post ID (cardType er det samme som postId)
+   */
   const handleParticipatingClick = (cardType) => {
     setParticipatingStates((prev) => ({
       ...prev,
-      [cardType]: !prev[cardType],
+      [cardType]: !prev[cardType], // Toggle: hvis true bliver false, hvis false bliver true
     }));
   };
 
   // ========================================
-  // UTILITY FUNCTIONS - Hjælpefunktioner
+  // TIME FORMATTING FUNCTIONS - Formaterer tid
   // ========================================
 
   /**
@@ -132,34 +166,34 @@ export default function PostSildeOp({
     return timeString;
   };
 
-  // formatTimestamp funktion fjernet da vi bruger formatTime i stedet
-
   // ========================================
   // DYNAMIC COUNT CALCULATIONS - Beregner tal baseret på bruger interaktion
   // ========================================
 
   /**
    * Beregner antal interesserede baseret på brugerens klik
+   * Hvis brugeren har klikket på "interesseret", så tilføjes +1 til base count
    * @param {string} postId - Post ID fra Firestore
    * @returns {number} Antal interesserede (base + 1 hvis bruger har klikket)
    */
   const getInterestedCount = (postId) => {
-    const base = getBaseCounts(postId).interested;
-    return interestedStates[postId] ? base + 1 : base;
+    const base = getBaseCounts(postId).interested; // Hent base count (1-5)
+    return interestedStates[postId] ? base + 1 : base; // Hvis bruger har klikket, tilføj +1
   };
 
   /**
    * Beregner antal deltagere baseret på brugerens klik
+   * Hvis brugeren har klikket på "deltager", så tilføjes +1 til base count
    * @param {string} postId - Post ID fra Firestore
    * @returns {number} Antal deltagere (base + 1 hvis bruger har klikket)
    */
   const getParticipatingCount = (postId) => {
-    const base = getBaseCounts(postId).participating;
-    return participatingStates[postId] ? base + 1 : base;
+    const base = getBaseCounts(postId).participating; // Hent base count (2-5)
+    return participatingStates[postId] ? base + 1 : base; // Hvis bruger har klikket, tilføj +1
   };
 
   // ========================================
-  // UTILITY FUNCTIONS
+  // MATH UTILITY FUNCTIONS - Matematiske hjælpefunktioner
   // ========================================
 
   /**
@@ -188,6 +222,7 @@ export default function PostSildeOp({
   // ========================================
   // EFFECTS - Lifecycle og event handling
   // ========================================
+  // useEffect hooks køres når komponenten renderes eller når bestemte værdier ændres
 
   /**
    * Når sheet åbnes, sæt højde til mellem min og max
@@ -219,20 +254,9 @@ export default function PostSildeOp({
     setIsAtTop(height >= threshold);
   }, [height, getMaxHeight]);
 
-  /**
-   * Lytter efter Escape tast for at lukke sheet
-   * Brugeren kan trykke Escape for at lukke sheet'en
-   */
-  useEffect(() => {
-    const onKey = (e) => {
-      if (!open) return; // Hvis sheet ikke er åben, gør intet
-      if (e.key === "Escape") onClose && onClose(); // Hvis Escape trykkes, luk sheet
-    };
-    window.addEventListener("keydown", onKey); // Tilføj event listener
-    return () => window.removeEventListener("keydown", onKey); // Fjern event listener når komponenten unmountes
-  }, [open, onClose]);
-
-  // Firebase Authentication Listener fjernet da vi bruger post.userName direkte fra Firestore
+  // ========================================
+  // FIRESTORE DATABASE INTEGRATION - Real-time data fra Firebase
+  // ========================================
 
   /**
    * Firestore Posts Listener - Real-time Database Integration
@@ -326,8 +350,9 @@ export default function PostSildeOp({
   }, [externalPosts]); // Dependency på externalPosts - hvis den ændres, genstart listener
 
   // ========================================
-  // DRAG FUNCTIONS - Drag funktionalitet
+  // DRAG FUNCTIONS - Drag funktionalitet (Google Maps style)
   // ========================================
+  // Disse funktioner håndterer at brugeren kan trække bottom sheet op og ned
 
   /**
    * Starter drag operation - gemmer start position og højde
@@ -510,14 +535,19 @@ export default function PostSildeOp({
   });
 
   // ========================================
-  // RENDER - JSX return
+  // RENDER - JSX return (HTML der vises på skærmen)
   // ========================================
+  // Her defineres hvad der skal vises på skærmen
 
   // Hvis sheet ikke er åben, render intet
   if (!open) return null;
 
   // Bestem om vi skal bruge pass-through mode (når collapsed)
+  // Pass-through betyder at klik passerer igennem til baggrunden
   const isCollapsed = height <= minHeight;
+
+  // I collapsed state skal backdrop stadig kunne lukke sheet'et
+  const shouldAllowBackdropClose = !disableBackdropClose;
 
   return (
     <div
@@ -527,18 +557,24 @@ export default function PostSildeOp({
       aria-modal="true"
       aria-label="Detaljer"
     >
-      {/* Backdrop - kan enten lukke på klik eller lade klik passere til baggrunden */}
-      {disableBackdropClose ? (
+      {/* ======================================== */}
+      {/* BACKDROP - Baggrund der kan lukke sheet */}
+      {/* ======================================== */}
+      {!shouldAllowBackdropClose ? (
         <div className="psu-backdrop psu-backdrop-pass" aria-hidden="true" />
       ) : (
         <button
-          className="psu-backdrop"
+          className={`psu-backdrop ${
+            isCollapsed ? "psu-backdrop-collapsed" : ""
+          }`}
           aria-label="Luk"
           onClick={() => onClose && onClose()}
         />
       )}
 
-      {/* Bottom sheet med dynamisk højde - hele sheet er draggable */}
+      {/* ======================================== */}
+      {/* BOTTOM SHEET - Hovedkomponenten der kan trækkes */}
+      {/* ======================================== */}
       <div
         ref={sheetRef}
         className={`psu-sheet ${isDragging ? "dragging" : ""} ${
@@ -551,14 +587,18 @@ export default function PostSildeOp({
         aria-label="Træk for at udvide"
         tabIndex={0}
       >
-        {/* Drag handle indikator */}
+        {/* Drag handle indikator - den lille streg der viser man kan trække */}
         <div className="psu-drag-indicator">
           <div className="psu-handle"></div>
         </div>
 
-        {/* Hovedindhold - ikke draggable */}
+        {/* ======================================== */}
+        {/* HOVEDINDHOLD - Alt indhold i sheet'en */}
+        {/* ======================================== */}
         <div className="psu-content">
-          {/* Overskrift og plus knap */}
+          {/* ======================================== */}
+          {/* OVERSKRIFT OG PLUS KNAP */}
+          {/* ======================================== */}
           <div className="psu-title-section">
             <h2 className="psu-title">{hotspotName}</h2>
             <button
@@ -573,7 +613,9 @@ export default function PostSildeOp({
             </button>
           </div>
 
-          {/* Sportsgrene sektion - dynamisk baseret på posts */}
+          {/* ======================================== */}
+          {/* SPORTSGRENE SEKTION - Viser ikoner for aktuelle sportsgrene */}
+          {/* ======================================== */}
           <div className="psu-sports-section">
             <div className="psu-sports-title">Sportsgrene</div>
             <div className="psu-sports-icons">
@@ -600,7 +642,7 @@ export default function PostSildeOp({
                   Basketball: "/img/basketball-white.png",
                   Fodbold: "/img/fodbold-white.png",
                   Tennis: "/img/tennis-white.png",
-                  Volleyball: "/img/volley-white.png", // Rettet til volley-white.png
+                  Volleyball: "/img/volley-white.png", 
                   Badminton: "/img/badminton-white.png",
                   Padel: "/img/padel-white.png",
                   Squash: "/img/squash-white.png",
@@ -641,14 +683,18 @@ export default function PostSildeOp({
             </div>
           </div>
 
-          {/* Loading state */}
+          {/* ======================================== */}
+          {/* LOADING STATE - Viser mens data hentes */}
+          {/* ======================================== */}
           {loading && (
             <div className="psu-loading">
               <div className="psu-loading-text">Henter posts...</div>
             </div>
           )}
 
-          {/* Dynamiske posts fra Firestore */}
+          {/* ======================================== */}
+          {/* NO POSTS STATE - Viser når der ikke er nogen posts */}
+          {/* ======================================== */}
           {!loading && posts.length === 0 && (
             <div className="psu-no-posts">
               <div className="psu-no-posts-text">Ingen posts endnu</div>
@@ -658,7 +704,9 @@ export default function PostSildeOp({
             </div>
           )}
 
-          {/* Render posts fra Firestore */}
+          {/* ======================================== */}
+          {/* POSTS LISTE - Viser alle posts fra Firestore */}
+          {/* ======================================== */}
           {!loading &&
             posts
               .filter((post) => {
@@ -673,6 +721,14 @@ export default function PostSildeOp({
                 return isUnder24Hours;
               })
               .map((post) => {
+                // ======================================== */}
+                {
+                  /* INDIVIDUEL POST CARD - Hver post får sin egen card */
+                }
+                {
+                  /* ======================================== */
+                }
+
                 // Bestem om posten er aktiv (inden for 2 timer)
                 const now = new Date();
                 // Håndter Firebase timestamp korrekt
@@ -687,6 +743,7 @@ export default function PostSildeOp({
                     key={post.id}
                     className={`psu-activity-card ${isActive ? "active" : ""}`}
                   >
+                    {/* Post header med tid/status */}
                     <div
                       className={`psu-card-header ${isActive ? "active" : ""}`}
                     >
@@ -695,11 +752,14 @@ export default function PostSildeOp({
                       </span>
                       {isActive && <div className="psu-active-dot"></div>}
                     </div>
+
+                    {/* Post indhold */}
                     <div className="psu-card-content">
                       <div className="psu-card-title orange">{post.title}</div>
                       <div className="psu-card-description">{post.details}</div>
+
+                      {/* Tags fra Firestore */}
                       <div className="psu-card-tags">
-                        {/* Vis kun tags fra Firestore, ikke sport */}
                         {post.tags &&
                           post.tags.map((tag, index) => (
                             <span key={index} className="psu-tag">
@@ -707,12 +767,16 @@ export default function PostSildeOp({
                             </span>
                           ))}
                       </div>
+
                       {/* Bruger navn fra Firestore */}
                       <div className="psu-card-user">
                         {post.userName || "Anonym_ugle"}
                       </div>
+
+                      {/* Stats knapper - interesseret og deltager */}
                       <div className="psu-card-stats">
                         <div className="psu-stats-container">
+                          {/* Interesseret knap */}
                           <div className="psu-stat-element">
                             <div
                               className={`psu-stat-square star ${
@@ -733,6 +797,8 @@ export default function PostSildeOp({
                               {getInterestedCount(post.id)} interesseret
                             </div>
                           </div>
+
+                          {/* Deltager knap */}
                           <div className="psu-stat-element">
                             <div
                               className={`psu-stat-square check ${
@@ -759,8 +825,6 @@ export default function PostSildeOp({
                   </div>
                 );
               })}
-
-          {children}
         </div>
       </div>
     </div>

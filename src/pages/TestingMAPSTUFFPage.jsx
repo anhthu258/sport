@@ -635,7 +635,7 @@ export default function TestingMAPSTUFFPage() {
         }}
         initialHeight={400}
         maxHeightPercent={80}
-        disableBackdropClose={true}
+        disableBackdropClose={false}
         externalPosts={filteredPosts}
         externalLoading={loadingPosts}
         hotspotName={selectedHotspotName}

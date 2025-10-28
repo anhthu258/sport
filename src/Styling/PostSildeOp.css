@@ -33,6 +33,11 @@
   pointer-events: none;
 }
 
+/* I collapsed state skal backdrop stadig kunne klikkes for at lukke */
+.psu-overlay.psu-pass-through .psu-backdrop-collapsed {
+  pointer-events: auto !important;
+}
+
 /* ========================================
    BACKDROP - Klik for at lukke sheet
    ======================================== */
