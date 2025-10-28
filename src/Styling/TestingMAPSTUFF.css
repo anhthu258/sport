@@ -13,6 +13,9 @@
   border: 0;
   z-index: 0;
 }
+
+/* .tm-panel styling,.tm-panel er baggrund på discover siden. */
+
 .tm-panel {
   position: absolute;
   inset: 0;
@@ -189,7 +192,7 @@
 
 .tm-chevron {
   position: absolute;
-  top: 50%;
+  top: 130px;
   transform: translateY(-50%);
   background: #0008;
   color: #fff;
@@ -315,6 +318,7 @@
 
 /* styling for filter buttons */
 .filter__btn {
+  margin-top: 50px;
   width: 64px;
   height: 64px;
   border-radius: 50%;
@@ -407,8 +411,6 @@
   display: none; /* Hide the text label */
 }
 
-
-/* discover baggrund styling */
 
 
 
