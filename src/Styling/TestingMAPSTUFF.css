@@ -32,14 +32,17 @@
   z-index: 1;
 }
 
-/* Bottom dark concrete section (like .login-container::before) */
+/* Bottom dark concrete section */
 .tm-panel::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
   bottom: -75vh; 
-  height: 100vh; 
+  height: 100vh;
+  background: url("/img/dark-concret.png") center/cover repeat;
+  pointer-events: none;
+  z-index: 0; 
 }
 
 
