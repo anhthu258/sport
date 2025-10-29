@@ -359,6 +359,18 @@
   position: relative;
 }
 
+/* Sport ikon i højre side af hvert kort */
+.psu-post-sport-icon {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  opacity: 0.9;
+  pointer-events: none; /* Ren pynt, ingen klik */
+}
+
 /* Aktivitet titel styling */
 .psu-card-title {
   color: white;

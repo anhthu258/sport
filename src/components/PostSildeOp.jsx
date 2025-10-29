@@ -58,6 +58,7 @@ export default function PostSildeOp({
   externalPosts = null, // Eksterne posts (hvis ikke givet, hentes fra Firestore)
   externalLoading = false, // Loading state for eksterne posts
   hotspotName = "Vælg et punkt", // Navn på det valgte hotspot
+  hotspotId = null, // Hotspot Firestore dokument ID (hvis kendt)
 }) {
   // ========================================
   // REFS - DOM elementer og drag state
@@ -85,6 +86,7 @@ export default function PostSildeOp({
   // Disse holder styr på posts fra databasen
   const [internalPosts, setInternalPosts] = useState([]); // Array af posts fra Firestore
   const [internalLoading, setInternalLoading] = useState(true); // Loading state for posts
+  const [hotspotSports, setHotspotSports] = useState([]); // Sportsgrene for valgt hotspot fra Firestore
 
   // Brug eksterne posts hvis givet, ellers interne posts
   // Dette gør komponenten fleksibel - den kan vise posts fra forskellige kilder
@@ -253,6 +255,33 @@ export default function PostSildeOp({
     const threshold = maxH * 0.95; // 95% af max højde
     setIsAtTop(height >= threshold);
   }, [height, getMaxHeight]);
+
+  // Hent sportsgrene for det valgte hotspot fra Firestore, hvis vi har et hotspotId
+  useEffect(() => {
+    let cancelled = false;
+    const fetchHotspotSports = async () => {
+      if (!hotspotId) {
+        setHotspotSports([]);
+        return;
+      }
+      try {
+        const { doc, getDoc } = await import("firebase/firestore");
+        const ref = doc(db, "hotspots", hotspotId.toString());
+        const snap = await getDoc(ref);
+        if (!cancelled) {
+          const data = snap.exists() ? snap.data() : {};
+          const arr = Array.isArray(data.sportsgren) ? data.sportsgren : [];
+          setHotspotSports(arr);
+        }
+      } catch {
+        if (!cancelled) setHotspotSports([]);
+      }
+    };
+    fetchHotspotSports();
+    return () => {
+      cancelled = true;
+    };
+  }, [hotspotId]);
 
   // ========================================
   // FIRESTORE DATABASE INTEGRATION - Real-time data fra Firebase
@@ -631,25 +660,45 @@ export default function PostSildeOp({
                   return timeDiff < 24 * 60 * 60 * 1000; // 24 timer i millisekunder
                 });
 
-                const uniqueSports = [
-                  ...new Set(
-                    recentPosts.map((post) => post.sport).filter(Boolean)
-                  ),
-                ];
+                // Normaliser sportnavne for at undgå casing/spacing problemer
+                const normalize = (s) =>
+                  (s || "").toString().trim().toLowerCase();
 
-                // Mapping af sportsgrene til ikoner - opdateret til at matche de rigtige filnavne
+                // Sportsgrene fra hotspot-dokument hvis tilgængeligt, ellers fra posts
+                const hotspotSportsNormalized = (hotspotSports || [])
+                  .map((s) => normalize(s))
+                  .filter((s) => !!s);
+
+                let uniqueSports = hotspotSportsNormalized.length
+                  ? [...new Set(hotspotSportsNormalized)]
+                  : [
+                      ...new Set(
+                        recentPosts
+                          .map((post) => normalize(post.sport))
+                          .filter((s) => !!s)
+                      ),
+                    ];
+
+                // Mapping af normaliserede sportsgrene til ikoner
                 const sportIcons = {
-                  Basketball: "/img/basketball-white.png",
-                  Fodbold: "/img/fodbold-white.png",
-                  Tennis: "/img/tennis-white.png",
-                  Volleyball: "/img/volley-white.png", 
-                  Badminton: "/img/badminton-white.png",
-                  Padel: "/img/padel-white.png",
-                  Squash: "/img/squash-white.png",
-                  Håndbold: "/img/handbold-white.png",
-                  Bordtennis: "/img/bordtennis-white.png",
-                  Fitness: "/img/fitness-white.png",
+                  basketball: "/img/basketball-white.png",
+                  basket: "/img/basketball-white.png", // synonym
+                  fodbold: "/img/fodbold-white.png",
+                  tennis: "/img/tennis-white.png",
+                  volleyball: "/img/volley-white.png",
+                  volley: "/img/volley-white.png", // synonym
+                  badminton: "/img/badminton-white.png",
+                  padel: "/img/padel-white.png",
+                  squash: "/img/squash-white.png",
+                  håndbold: "/img/handbold-white.png",
+                  handbold: "/img/handbold-white.png", // uden æ/ø/å
+                  bordtennis: "/img/bordtennis-white.png",
+                  fitness: "/img/fitness-white.png",
                 };
+
+                // Visningsnavn (capitalize først bogstav)
+                const displayName = (s) =>
+                  s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
 
                 // Hvis ingen posts, vis standard ikoner
                 if (uniqueSports.length === 0) {
@@ -674,9 +723,9 @@ export default function PostSildeOp({
                   <img
                     key={index}
                     src={sportIcons[sport] || "/img/sport-default-white.png"}
-                    alt={sport}
+                    alt={displayName(sport)}
                     className="psu-sport-icon"
-                    title={sport}
+                    title={displayName(sport)}
                   />
                 ));
               })()}
@@ -755,6 +804,26 @@ export default function PostSildeOp({
 
                     {/* Post indhold */}
                     <div className="psu-card-content">
+                      {/* Sport ikon oppe i højre side af kortet */}
+                      {(() => {
+                        const normalize = (s) =>
+                          (s || "").toString().trim().toLowerCase();
+                        const postSportIcons = {
+                          basketball: "/img/postbasket.png",
+                          fodbold: "/img/postfodbold.png",
+                          tennis: "/img/posttennis_.png",
+                          volleyball: "/img/volley-white.png",
+                        };
+                        const sportForIconKey = normalize(post.sport);
+                        const iconSrc = postSportIcons[sportForIconKey];
+                        return iconSrc ? (
+                          <img
+                            src={iconSrc}
+                            alt={post.sport || "Sport"}
+                            className="psu-post-sport-icon"
+                          />
+                        ) : null;
+                      })()}
                       <div className="psu-card-title orange">{post.title}</div>
                       <div className="psu-card-description">{post.details}</div>
 

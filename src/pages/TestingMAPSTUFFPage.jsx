@@ -485,7 +485,7 @@ export default function TestingMAPSTUFFPage() {
             ))}
           </div>
 
- {/* Filter komponent til valg af sport */}
+          {/* Filter komponent til valg af sport */}
 
           <div className="tm-activities">
             <Filter
@@ -568,8 +568,7 @@ export default function TestingMAPSTUFFPage() {
             />
           </div>
 
- {/* slut på filter kode */}
-
+          {/* slut på filter kode */}
 
           <button
             onClick={() => {
@@ -678,6 +677,7 @@ export default function TestingMAPSTUFFPage() {
         externalPosts={filteredPosts}
         externalLoading={loadingPosts}
         hotspotName={selectedHotspotName}
+        hotspotId={selectedHotspotId}
       />
       {/* Debug info - kun i udvikling */}
       {console.log(
