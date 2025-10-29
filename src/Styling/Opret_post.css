@@ -161,6 +161,7 @@
   justify-content: space-evenly;
   gap: 8px;
   flex-wrap: wrap; /* allow wrapping on small screens */
+  margin-bottom: 10px;
 }
 
 /* Hashtag-style buttons */
@@ -190,7 +191,7 @@
 
 /* selected / active tag */
 .activetag{
-  background-color: #ff512f;
+  background-color: #ff5a1f;
   color: #f9f9f9;
   border-color: transparent;
   box-shadow: 0 8px 26px rgba(255,81,47,0.18);
@@ -224,4 +225,21 @@
   .form-row {
     flex-direction: column; /* Lodret layout */
   }
+}
+
+/* ======================================
+*   Tilbagepil
+=========================================*/
+
+.tilbageknap{
+  background-color: #ff5a1f;
+  font-size: larger;
+  font-weight: 700;
+  color: #f9f9f9;
+  padding: 12px 19px;
+  border-style: none;
+  border-radius: 30px;
+  position: absolute;
+  z-index: 1;
+  margin: 20px;
 }
