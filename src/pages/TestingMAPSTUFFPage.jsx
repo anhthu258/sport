@@ -485,7 +485,7 @@ export default function TestingMAPSTUFFPage() {
             ))}
           </div>
 
-          {/* Filter komponent til valg af sport */}
+ {/* Filter komponent til valg af sport */}
 
           <div className="tm-activities">
             <Filter
@@ -567,6 +567,9 @@ export default function TestingMAPSTUFFPage() {
               ]}
             />
           </div>
+
+ {/* slut på filter kode */}
+
 
           <button
             onClick={() => {
