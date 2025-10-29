@@ -57,7 +57,7 @@ export default function Signup() {
 
       // viser en kort success besked før redirect til login holder i 1200ms
       setSuccess('Account created');
-      setTimeout(() => navigate('/login', { state: { view: 'login' } }), 1200);
+      setTimeout(() => navigate('/login', { state: { view: 'choice' } }), 1200);
     } catch (err) {
       console.error(err);
       // make firebase error code more readable like template does

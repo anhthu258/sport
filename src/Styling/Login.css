@@ -216,6 +216,17 @@ p, label, button{
   cursor: pointer;
 }
 
+/* hero image for choice view */
+.hero-choice-img {
+  display: block;
+  margin: 16px auto 24px;
+  width: 620px;  
+  max-width: 92%;    
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
 /* Responsive tweaks */
 @media (max-width: 420px) {
   .login-form {
@@ -230,6 +241,16 @@ p, label, button{
     padding: 14px;
     font-size: 17px;
   }
-  .auth-panel { padding: 16px; }
-  .btn-inline { padding: 8px 12px; font-size: 15px; }
+  .auth-panel { 
+    padding: 16px; 
+  }
+  .btn-inline { 
+    padding: 8px 12px; 
+    font-size: 15px; 
+  }
+
+  .hero-choice-img {
+    width: 140px;
+    margin-bottom: 12px;
+  }
 }
