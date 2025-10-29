@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { auth, db } from '../assets/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-export default function Signup() {
+export default function Signup({onSuccess}) {
   const MAX_USERNAME = 25; // <-- maks længde for brugernavn
   const MIN_PASSWORD = 8; // <-- minimum længde for password
   // lokal state for formularfelter
@@ -57,34 +57,37 @@ export default function Signup() {
 
       // viser en kort success besked før redirect til login holder i 1200ms
       setSuccess('Account created');
-      setTimeout(() => navigate('/login', { state: { view: 'choice' } }), 1200);
+      setTimeout(() => {
+        if (typeof onSuccess === 'function') {
+          onSuccess(); // tell parent to show choice view
+        }
+      }, 1200);
+
+      // clear sensitive state
+      setPassword('');
     } catch (err) {
       console.error(err);
-      // make firebase error code more readable like template does
       const raw = err?.code || err?.message || 'Signup failed';
       const friendly = String(raw).replaceAll('-', ' ').replaceAll('auth/', '');
       setError(friendly);
     }
   };
 
-  // selve formularen
   return (
     <section className="login-container">
       <form onSubmit={handleSubmit} className="form-container">
-        {/* Brugervenligt label + input til brugernavn */}
         <section className="field">
           <label>
             Username
             <input
               name="username"
-              maxLength={MAX_USERNAME}   // <-- prevents typing longer than limit
+              maxLength={MAX_USERNAME}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
           </label>
         </section>
 
-        {/* Email-felt */}
         <section className="field">
           <label>
             Email
@@ -92,7 +95,6 @@ export default function Signup() {
           </label>
         </section>
 
-        {/* Password-felt */}
         <section className="field">
           <label>
             Password

@@ -57,7 +57,7 @@ export default function Login() {
         {/* Signup-view: viser Signup-komponenten og link tilbage til login */}
         {view === 'signup' && (
           <>
-            <Signup />
+            <Signup onSuccess={() => setView('choice')} />
             <p className="auth-note">
               Allerede bruger?{' '}
               <button className="btn-inline" onClick={() => setView('login')}>Login</button>
