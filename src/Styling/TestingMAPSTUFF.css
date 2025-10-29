@@ -133,6 +133,7 @@ p, label, button{
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 220ms ease, transform 220ms ease;
+  font-family: "anton", sans-serif;
 }
 .tm-slide-text.active {
   opacity: 1;
