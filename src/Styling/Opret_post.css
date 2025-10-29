@@ -161,6 +161,7 @@
   justify-content: space-evenly;
   gap: 8px;
   flex-wrap: wrap; /* allow wrapping on small screens */
+  margin-bottom: 10px;
 }
 
 /* Hashtag-style buttons */
