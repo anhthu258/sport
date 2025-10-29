@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router';
+import { useNavigate } from 'react-router';
 import { auth, db } from '../assets/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -7,6 +7,8 @@ import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firesto
 const MIN_PASSWORD = 8; // <-- minimum længde for password
 
 export default function LoginForm({ onLogin }) {
+    const navigate = useNavigate(); // navigere efter successful sign-in
+
     // state til inputfelter + fejl
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
@@ -47,8 +49,12 @@ export default function LoginForm({ onLogin }) {
 
             const userCredential = await signInWithEmailAndPassword(auth, emailToUse, password);
             const user = userCredential.user;
-            // ingen Firestore — notify parent med kun auth bruger
+
+            // notify parent if provided
             onLogin?.(user, null);
+
+            // navigate to TestingMAPSTUFFPage (andre route hvis der er behov stadig under testing)
+            navigate('/testing-map');
         } catch (err) {
             console.error(err);
             const friendly = String(err?.code || err?.message || 'Sign in failed')

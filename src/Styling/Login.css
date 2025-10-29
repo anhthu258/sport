@@ -17,6 +17,51 @@
   padding: 0 20px;
 }
 
+/* success notification på signup */
+.success {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #16a34a;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+  transition: opacity 220ms ease, transform 220ms ease;
+  will-change: opacity, transform;
+}
+
+/* vis når indhold eksisterer */
+.success:not(:empty) {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* ikonen på success notification */
+.success::before {
+  content: '✓';
+  display: inline-block;
+  margin-right: 8px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.95);
+}
+
+/* responsive: center top on small screens */
+@media (max-width: 420px) {
+  .success {
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -8px) scale(0.98);
+  }
+  .success:not(:empty) {
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
 /* Fonts */
 h1, h2, h3{
   font-family: "anton", sans-serif;
@@ -171,6 +216,17 @@ p, label, button{
   cursor: pointer;
 }
 
+/* hero image for choice view */
+.hero-choice-img {
+  display: block;
+  margin: 16px auto 24px;
+  width: 620px;  
+  max-width: 92%;    
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
 /* Responsive tweaks */
 @media (max-width: 420px) {
   .login-form {
@@ -185,6 +241,16 @@ p, label, button{
     padding: 14px;
     font-size: 17px;
   }
-  .auth-panel { padding: 16px; }
-  .btn-inline { padding: 8px 12px; font-size: 15px; }
+  .auth-panel { 
+    padding: 16px; 
+  }
+  .btn-inline { 
+    padding: 8px 12px; 
+    font-size: 15px; 
+  }
+
+  .hero-choice-img {
+    width: 140px;
+    margin-bottom: 12px;
+  }
 }

@@ -26,17 +26,55 @@ p, label, button{
   border: 0;
   z-index: 0;
 }
+
+/* .tm-panel styling,.tm-panel er baggrund på discover siden. */
+
 .tm-panel {
   position: absolute;
   inset: 0;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  background: #0f172a;
-  color: #fff;
+  /* Base solid dark background */
+  background: #1e1e1e;
+  color: #f9f9f9;
   transform: translate3d(var(--panel-x, 0), 0, 0);
   transition: transform 200ms ease;
 }
+
+/* Behold container over dekorative pseudo-elementer */
+.tm-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Top white concrete sektion*/
+.tm-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40vh;
+  background: url("/img/white-concret.png") top center/cover no-repeat;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Bund dark concrete sektion*/
+.tm-panel::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40vh;
+  background: url("/img/dark-concret.png") center/cover repeat;
+  pointer-events: none;
+  z-index: 0;
+}
+
+
 .tm-panel.dragging {
   transition: none;
 }
@@ -50,7 +88,7 @@ p, label, button{
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: none; /* we'll snap manually on release for predictable behavior */
   gap: 12px;
   -webkit-overflow-scrolling: touch;
   border-radius: 16px;
@@ -67,26 +105,25 @@ p, label, button{
 .tm-slide {
   position: relative;
   flex: 0 0 100%;
-  height: 260px;
+  height: auto; /* Let image define height to preserve its aspect ratio */
   border-radius: 16px;
   overflow: hidden;
   scroll-snap-align: start;
-  scroll-snap-stop: always;
+  scroll-snap-stop: normal;
   background: #111827;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .tm-slide-img {
-  position: absolute;
-  inset: 0;
+  position: relative; /* in normal flow so aspect ratio is preserved */
   width: 100%;
-  height: 100%;
-  object-fit: contain; /* Changed from cover to contain to prevent over-scaling */
-  object-position: center; /* Center the image */
+  height: auto; /* keep original aspect ratio */
+  object-fit: contain;
+  object-position: center;
+  display: block;
   filter: contrast(1.02);
   max-width: 100%;
-  max-height: 100%;
 }
 .tm-slide-text {
   position: absolute;
@@ -112,6 +149,31 @@ p, label, button{
 }
 .tm-slide-sport {
   opacity: 0.85;
+  font-size: 12px;
+}
+
+/* Bottom-right live stats pill */
+.tm-slide-stats {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid #1f2937;
+}
+.tm-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e; /* green */
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.9);
+}
+.tm-live-text {
+  color: #fff;
   font-size: 12px;
 }
 
@@ -143,7 +205,7 @@ p, label, button{
 
 .tm-chevron {
   position: absolute;
-  top: 50%;
+  top: 130px;
   transform: translateY(-50%);
   background: #0008;
   color: #fff;
@@ -252,10 +314,7 @@ p, label, button{
   transform: translateX(1px); /* optical alignment */
 }
 
-
-
 /* filter styling */
-
 
 .filter {
   display: flex;
@@ -272,6 +331,7 @@ p, label, button{
 
 /* styling for filter buttons */
 .filter__btn {
+  margin-top: 50px;
   width: 64px;
   height: 64px;
   border-radius: 50%;
@@ -287,7 +347,7 @@ p, label, button{
   overflow: visible;
 }
 
-/* Background layer styling using ::before pseudo-element */
+/*  Button Baggrund lag styling ved hjælp af ::before pseudo-element */
 .filter__btn::before {
   content: "";
   position: absolute;
@@ -310,7 +370,7 @@ p, label, button{
   opacity: 1;
 }
 
-/* default state - hvis hvidt ikon, gem sort ikon og baggrund */
+/* default state - vis hvidt ikon, gem sort ikon og baggrund */
 .filter__btn .filter-icon-default {
   display: block;
   position: relative;
@@ -363,3 +423,7 @@ p, label, button{
 .filter__btn span:last-child {
   display: none; /* Hide the text label */
 }
+
+
+
+

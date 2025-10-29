@@ -41,6 +41,7 @@ export default function TestingMAPSTUFFPage() {
   const GAP = 12; // keep in sync with CSS gap for .tm-slides
   const HANDLE_WIDTH = 40; // keep in sync with CSS .tm-reveal-handle width
   const HANDLE_MARGIN = 12;
+  const HANDLE_BUFFER = 8; // extra pixels below slides before the drag gutter starts
   // --- UI/gesture state ---
   const [panelX, setPanelX] = useState(0); // panel translateX in px
   const [dragging, setDragging] = useState(false); // true while dragging panel
@@ -62,55 +63,56 @@ export default function TestingMAPSTUFFPage() {
     startX: 0,
     startScroll: 0,
   });
+  const [sliderInteracting, setSliderInteracting] = useState(false);
 
-  // Dynamiske slides baseret på Firebase data
-  const slides = useMemo(() => {
-    if (!posts.length) {
-      // Fallback slides hvis ingen posts
-      return [
+  // Simple static slider content: title, sport label, image, and mock active count
+  const slides = useMemo(
+    () => [
+      {
+        title: "Havnen",
+        sport: "Fodbold",
+        img: "/img/LokationImg/havnen.jpg",
+        meta: "1 aktiv",
+      },
+      {
+        title: "Navitas",
+        sport: "Tennis",
+        img: "/img/LokationImg/navitas.jpg",
+        meta: "3 aktive",
+      },
+      {
+        title: "Frederiksberg Idrætscenter",
+        sport: "Basketball",
+        img: "/img/LokationImg/frederiksbergidraetscenter.jpg",
+        meta: "0 aktive",
+      },
+      {
+        title: "Frederiksberg Skole",
+        sport: "Volleyball",
+        img: "/img/LokationImg/frederiksbergskole.jpg",
+        meta: "2 aktive",
+      },
+    ],
+    []
+  );
+
+  // Helper: ask the map iframe to focus a hotspot by title/id
+  const focusHotspot = useCallback((query) => {
+    const frame = frameRef.current;
+    if (!frame || !frame.contentWindow) return;
+    try {
+      frame.contentWindow.postMessage(
         {
-          title: "Ingen aktivitet",
-          meta: "0 aktive",
-          sport: "Ingen",
-          img: "/img/dokk123.png",
+          source: "discover",
+          type: "focusHotspot",
+          query: (query || "").toString(),
         },
-      ];
+        window.location.origin
+      );
+    } catch (e) {
+      // no-op
     }
-
-    // Gruppér posts efter hotspotId og sport
-    const groupedPosts = posts.reduce((acc, post) => {
-      const key = `${post.hotspotId}-${post.sport}`;
-      if (!acc[key]) {
-        acc[key] = {
-          hotspotId: post.hotspotId,
-          sport: post.sport,
-          posts: [],
-        };
-      }
-      acc[key].posts.push(post);
-      return acc;
-    }, {});
-
-    // Konverter til slides format
-    return Object.values(groupedPosts).map((group) => {
-      const activeCount = group.posts.filter((post) => {
-        const now = new Date();
-        // Håndter Firebase timestamp korrekt
-        const postTime = post.timestamp?.toDate
-          ? post.timestamp.toDate()
-          : new Date(post.timestamp);
-        const timeDiff = now - postTime;
-        return timeDiff < 2 * 60 * 60 * 1000; // 2 timer
-      }).length;
-
-      return {
-        title: group.hotspotId || "Ukendt lokation",
-        meta: `${activeCount} ${activeCount === 1 ? "aktiv" : "aktive"}`,
-        sport: group.sport,
-        img: "/img/dokk123.png", // Standard billede
-      };
-    });
-  }, [posts]);
+  }, []);
 
   // --- Geometry helpers ---
   const width = useCallback(
@@ -179,11 +181,12 @@ export default function TestingMAPSTUFFPage() {
     detachWindowDrag();
   };
 
-  // Measure carousel height so the right drag gutter starts below it
+  // Measure slides (image container) height so the right drag gutter starts BELOW the images
   useEffect(() => {
     const update = () => {
-      const h = carouselRef.current?.offsetHeight || 0;
-      setHandleTop(h);
+      const h = slidesRef.current?.offsetHeight || 0;
+      // Start the right drag gutter just below the visible slides to prevent accidental reveal while interacting
+      setHandleTop(Math.max(0, h + HANDLE_BUFFER));
     };
     update();
     window.addEventListener("resize", update);
@@ -241,7 +244,8 @@ export default function TestingMAPSTUFFPage() {
       const w = el.clientWidth || 1;
       const step = w + GAP;
       const idx = Math.round(el.scrollLeft / step);
-      setActiveSlide(Math.max(0, idx));
+      const max = slides.length - 1;
+      setActiveSlide(Math.max(0, Math.min(max, idx)));
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
@@ -308,19 +312,19 @@ export default function TestingMAPSTUFFPage() {
     } catch {
       /* ignore */
     }
+    setSliderInteracting(true);
     const el = slidesRef.current;
     if (!el) return;
-    carDrag.current = {
-      active: true,
-      id: e.pointerId,
-      startX: e.clientX,
-      startScroll: el.scrollLeft,
-    };
+    carDrag.current.active = true;
+    carDrag.current.id = e.pointerId;
+    carDrag.current.startX = e.clientX;
+    carDrag.current.startScroll = el.scrollLeft;
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
     } catch {
       /* ignore */
     }
+    // Minimal drag behavior: directly update scrollLeft while dragging
     el.style.userSelect = "none";
     el.style.cursor = "grabbing";
   };
@@ -339,6 +343,7 @@ export default function TestingMAPSTUFFPage() {
     const el = slidesRef.current;
     if (!el) return;
     const dx = e.clientX - carDrag.current.startX;
+    // Direct scroll: no snapping or smoothing here
     el.scrollLeft = carDrag.current.startScroll - dx;
   };
   const onCarUp = (e) => {
@@ -346,24 +351,41 @@ export default function TestingMAPSTUFFPage() {
     e.stopPropagation();
     const el = slidesRef.current;
     if (el) {
+      // Snap cleanly to the nearest slide for a normal carousel feel
       const w = el.clientWidth || 1;
       const step = w + GAP;
-      const idx = Math.round(el.scrollLeft / step);
+      const pos = el.scrollLeft;
+      let idx = Math.round(pos / step);
+      const max = slides.length - 1;
+      if (idx < 0) idx = 0;
+      if (idx > max) idx = max;
       el.scrollTo({ left: idx * step, behavior: "smooth" });
       setActiveSlide(idx);
       el.style.userSelect = "";
       el.style.cursor = "grab";
     }
     carDrag.current.active = false;
+    setSliderInteracting(false);
   };
   const onCarCancel = () => {
     if (!carDrag.current.active) return;
     const el = slidesRef.current;
     if (el) {
+      // Also snap on cancel to keep slides aligned nicely
+      const w = el.clientWidth || 1;
+      const step = w + GAP;
+      const pos = el.scrollLeft;
+      let idx = Math.round(pos / step);
+      const max = slides.length - 1;
+      if (idx < 0) idx = 0;
+      if (idx > max) idx = max;
+      el.scrollTo({ left: idx * step, behavior: "smooth" });
+      setActiveSlide(idx);
       el.style.userSelect = "";
       el.style.cursor = "grab";
     }
     carDrag.current.active = false;
+    setSliderInteracting(false);
   };
   const onCarWheel = (e) => {
     const el = slidesRef.current;
@@ -412,9 +434,17 @@ export default function TestingMAPSTUFFPage() {
             onPointerUp={onCarUp}
             onPointerCancel={onCarCancel}
             onWheel={onCarWheel}
+            onPointerEnter={() => setSliderInteracting(true)}
+            onPointerLeave={() => setSliderInteracting(false)}
           >
             {slides.map((s, i) => (
-              <div key={i} className="tm-slide">
+              <div
+                key={i}
+                className="tm-slide"
+                onClick={() => focusHotspot(s.title)}
+                role="button"
+                aria-label={`Fokusér ${s.title} på kortet`}
+              >
                 <img
                   src={s.img}
                   alt={s.title}
@@ -427,9 +457,12 @@ export default function TestingMAPSTUFFPage() {
                     activeSlide === i ? " active" : ""
                   }`}
                 >
-                  <div className="tm-slide-meta">{s.meta}</div>
                   <div className="tm-slide-title">{s.title}</div>
-                  <div className="tm-slide-sport">{s.sport}</div>
+                  <div className="tm-slide-sport">{s.sport || ""}</div>
+                </div>
+                <div className="tm-slide-stats">
+                  <span className="tm-live-dot" aria-hidden="true" />
+                  <span className="tm-live-text">{s.meta}</span>
                 </div>
               </div>
             ))}
@@ -452,7 +485,7 @@ export default function TestingMAPSTUFFPage() {
             ))}
           </div>
 
-          {/* Filter komponent til valg af sport */}
+ {/* Filter komponent til valg af sport */}
 
           <div className="tm-activities">
             <Filter
@@ -535,6 +568,9 @@ export default function TestingMAPSTUFFPage() {
             />
           </div>
 
+ {/* slut på filter kode */}
+
+
           <button
             onClick={() => {
               const el = slidesRef.current;
@@ -599,7 +635,10 @@ export default function TestingMAPSTUFFPage() {
         onPointerUp={onUp}
         onPointerCancel={onCancel}
         className={`tm-handle${dragging ? " dragging" : ""}`}
-        style={{ "--handle-top": `${handleTop}px` }}
+        style={{
+          "--handle-top": `${handleTop}px`,
+          pointerEvents: sliderInteracting ? "none" : "auto",
+        }}
         aria-label="Drag to reveal map"
       />
 
