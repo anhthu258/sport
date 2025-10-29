@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import "../styling/Opret_post.css";
 import { serverTimestamp } from "firebase/firestore";
 import { db, auth } from "../assets/firebase";
+import { useNavigate } from "react-router";
 import { collection, addDoc, getDocs, doc, getDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 
 export default function OpretPost() {
@@ -20,6 +21,9 @@ export default function OpretPost() {
   // State for dropdown valgmuligheder hentet fra Firestore
   const [sportsOptions, setSportsOptions] = useState([]); // Liste af tilgængelige sportsgrene
   const [locationOptions, setLocationOptions] = useState([]); // Liste af tilgængelige lokationer
+
+  //Til redirect
+    const navigate = useNavigate();
 
   // Hent sportsgrene og lokationer fra Firestore når komponenten loader
   // useEffect kører når komponenten mountes (første gang den vises)
@@ -80,26 +84,31 @@ export default function OpretPost() {
       setMessage("Der opstod en fejl – prøv igen senere.");
     }
   }
-  async function handleTagClick(e) {
-    e.preventDefault();
-    const tagValue = e.target.value;
+  async function handleTagClick(e) { 
+    e.preventDefault(); //Sørger for den ikke refresher eller "submitter"
+    const tagValue = e.target.value; //Det tag man klikker på har en value "ny" "øvet" "pro"
 
-    if(tags.includes(tagValue)) { 
-        setTags(tags.filter(tag => tag !== tagValue))
+    if(tags.includes(tagValue)) {  //Hvis tags har den value allerede
+        setTags(tags.filter(tag => tag !== tagValue)) //Så fjern den value fra tags arrayet (altså afmakér)
     } else{
-        setTags([...tags, tagValue])
+        setTags([...tags, tagValue]) //Ellers tilføj den
     }
-    console.log("Opdaterede tags:", tags);
+    console.log("Opdaterede tags:", tags); //Virker, men er ikke opdateret(Det er også pisse ligegyldigt, vi kan se det virker i firestore)
   }
 
   // Håndterer når brugeren indsender formularen
   // Dette er hovedfunktionen der gemmer det nye opslag i Firestore
+  /* ==========================================
+  * Handle submit funktionen :)
+  * ===========================================*/ 
   async function handleSubmit(e) {
     e.preventDefault(); // Forhindrer at siden reloader (standard form behavior)
 
     const userDoc = await getDoc(doc(db, "profil", auth.currentUser.uid)); //Henter alt data fra profil, og fortæller hvilken user, der er logget ind "auth"
     const user = auth.currentUser; //CurrentUser = User
-    const userData = userDoc.data() //konstant til alt data 
+    const userData = userDoc.data(); //konstant til alt data 
+    
+
 
     if(!user){ //Hvis der ikke er noget user logget ind, så gør dette
         setMessage("Du kan ikke oprette opslag, uden at være logget ind");
@@ -137,6 +146,9 @@ export default function OpretPost() {
       sport, // Reference til valgt sportsgren (fra dropdown)
       timestamp: serverTimestamp(), // Automatisk tidsstempel fra Firestore server
     });
+
+    //Redirect
+    navigate("/testing-map")
 
     // Tilføj til hotspot
 const hotspotRef = doc(db, "hotspots", location);
@@ -187,25 +199,22 @@ postsSnapshot.docs.forEach(async (postDoc) => { //for hvert postDoc
     console.log(`Slettede post ${postDoc.id} og fjernede den fra hotspot ${postData.hotspotId}`);
   }
 });
-
-
-
-  
-    setTitle(""); // Ryd titel
-    setSport(""); // Ryd sportsgren
-    setLocation(""); // Ryd lokation
-    setTime(""); // Ryd tidspunkt
-    setDetails(""); // Ryd beskrivelse
-    setSportsOptions([]); // Ryd sportsgrene dropdown
   }
+
+
 
 
   // Render formularen med alle input felter
   // Dette er JSX der viser hele formularen til brugeren
   return (
     <div className="opret-post-page">
+
+        <button className="tilbageknap" onClick={() => navigate(-1)}>
+                <span className="pil-icon">&lt;</span>
+            </button>
       {/* Header sektion med titel og dekoration */}
       <div className="opret-hero">
+            
         <h1>Opret Post</h1>
         <div className="crown-doodle"></div> {/* Dekorativ element gul/grøn*/}
       </div>
