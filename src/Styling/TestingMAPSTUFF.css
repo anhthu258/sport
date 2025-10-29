@@ -5,6 +5,19 @@
   overflow: hidden;
 }
 
+/* Fonts */
+h1, h2, h3{
+  font-family: "anton", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+p, label, button{
+  font-family: "termina", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
 .tm-map-frame {
   position: absolute;
   inset: 0;
@@ -120,6 +133,7 @@
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 220ms ease, transform 220ms ease;
+  font-family: "anton", sans-serif;
 }
 .tm-slide-text.active {
   opacity: 1;
