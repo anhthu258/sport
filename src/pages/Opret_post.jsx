@@ -289,9 +289,9 @@ postsSnapshot.docs.forEach(async (postDoc) => { //for hvert postDoc
         <div className="form-group-tags">
             <label className="form-label">Tags</label>
             <div className="tag-group">
-            <button className={`tags ${tags.includes("ny") ? "activetag" : ""}`} type="button"value="ny"onClick={handleTagClick}>Ny</button>
-            <button className={`tags ${tags.includes("øvet") ? "activetag" : ""}`} type="button" value="øvet" onClick={handleTagClick}>Øvet</button>
-            <button className={`tags ${tags.includes("pro") ? "activetag" : ""}`} type="button" value="pro" onClick={handleTagClick}>Pro</button>
+            <button className={`tags ${tags.includes("ny") ? "activetag" : ""}`} type="button"value="ny"onClick={handleTagClick}>#Ny</button>
+            <button className={`tags ${tags.includes("øvet") ? "activetag" : ""}`} type="button" value="øvet" onClick={handleTagClick}>#Øvet</button>
+            <button className={`tags ${tags.includes("pro") ? "activetag" : ""}`} type="button" value="pro" onClick={handleTagClick}>#Pro</button>
             </div>
         </div>
 
