@@ -6,13 +6,13 @@
 }
 
 /* Fonts */
-h1, h2, h3{
+h1, h2, h3 {
   font-family: "anton", sans-serif;
   font-weight: 400;
   font-style: normal;
 }
 
-p, label, button{
+p, label, button {
   font-family: "termina", sans-serif;
   font-weight: 400;
   font-style: normal;
@@ -73,7 +73,6 @@ p, label, button{
   pointer-events: none;
   z-index: 0;
 }
-
 
 .tm-panel.dragging {
   transition: none;
@@ -181,8 +180,8 @@ p, label, button{
 .tm-dots {
   pointer-events: auto;
   position: absolute;
-  right: 20px;
-  bottom: 20px;
+  right: 170px;
+  bottom: 150px;
   display: flex;
   gap: 6px;
 }
@@ -245,6 +244,7 @@ p, label, button{
 }
 .tm-muted {
   opacity: 0.8;
+  font-family: "anton", sans-serif; /* match titles/labels font */
 }
 .tm-post-list {
   display: grid;
@@ -422,9 +422,89 @@ p, label, button{
 }
 
 .filter__btn span:last-child {
-  display: none; /* Hide the text label */
+  display: none; /* hide text labels inside buttons if any */
 }
 
+/* Location card styling for tm-panel */
+.tm-location-list {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
 
+.tm-location-card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: none;
+  background: #111827;
+}
 
+.tm-location-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+}
 
+.tm-location-image {
+  position: relative;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  filter: contrast(1.02);
+  max-width: 100%;
+}
+
+.tm-loc-active,
+.tm-location-name,
+.tm-loc-posts {
+  font-family: "anton", sans-serif;
+}
+
+.tm-loc-active {
+  position: absolute;
+  left: 16px;
+  bottom: 44px; /* sit just above the title */
+  font-size: 16px; /* smaller than title */
+  color: #fff;
+}
+
+.tm-location-name {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  margin: 0;
+  font-size: clamp(22px, 3.4vw, 36px);
+  font-weight: 700;
+  color: #fb923c; /* orange title */
+  letter-spacing: 0.5px;
+  max-width: 65%;
+  line-height: 1.05;
+}
+
+.tm-loc-posts {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  font-size: 16px; /* smaller label */
+  color: #fff;
+  text-align: right;
+}
+
+.tm-location-info {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  opacity: 0.95;
+}
+
+.tm-active-count,
+.tm-post-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #f9f9f9;
+}

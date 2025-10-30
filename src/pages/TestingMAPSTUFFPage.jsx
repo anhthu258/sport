@@ -29,7 +29,7 @@ import "../Styling/TestingMAPSTUFF.css";
 import Filter from "../components/Filter.jsx";
 import PostSildeOp from "../components/PostSildeOp";
 import { db } from "../assets/firebase.js";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, getDocs } from "firebase/firestore";
 
 export default function TestingMAPSTUFFPage() {
   // --- Refs to DOM elements we measure or control ---
@@ -49,8 +49,9 @@ export default function TestingMAPSTUFFPage() {
   const [handleTop, setHandleTop] = useState(0); // gutter starts below carousel
   const [selectedSport, setSelectedSport] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [hotspots, setHotspots] = useState([]);
+  const [filteredHotspots, setFilteredHotspots] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
-  const [postsError, setPostsError] = useState(null);
   // Bottom sheet (PostSildeOp) visibility
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedHotspotId, setSelectedHotspotId] = useState(null);
@@ -64,6 +65,55 @@ export default function TestingMAPSTUFFPage() {
     startScroll: 0,
   });
   const [sliderInteracting, setSliderInteracting] = useState(false);
+
+  // Helper function til at få det rigtige billede for hver lokation.
+  // Accepterer enten et helt hotspot-objekt eller et navn (string).
+  const getLocationImage = (hotspotOrName) => {
+    const locationImageMap = {
+      DOKK1: "/img/LokationImg/dokk123.png",
+      Havnen: "/img/LokationImg/havnen.jpg",
+      Navitas: "/img/LokationImg/navitas.jpg",
+      Island: "/img/LokationImg/navitas.jpg",
+      Frederiksbergsvoemmehal:
+        "/img/LokationImg/frederiksbergidraetscenter.jpg",
+      Frederiksbergskole: "/img/LokationImg/frederiksbergskole.jpg",
+    };
+
+    if (!hotspotOrName) return locationImageMap.DOKK1;
+
+    // Hvis der kommer et helt hotspot-objekt med en specifik img, brug den
+    if (typeof hotspotOrName === "object") {
+      if (hotspotOrName.img) return hotspotOrName.img;
+      const name =
+        hotspotOrName.name ||
+        hotspotOrName.title ||
+        hotspotOrName.navn ||
+        hotspotOrName.placeName ||
+        hotspotOrName.id ||
+        "";
+      if (locationImageMap[name]) return locationImageMap[name];
+      const lower = name.toLowerCase();
+      for (const [key, val] of Object.entries(locationImageMap)) {
+        if (lower === key.toLowerCase()) return val;
+      }
+      return locationImageMap.DOKK1;
+    }
+
+    // Hvis der kommer et navn (string)
+    if (typeof hotspotOrName === "string") {
+      const name = hotspotOrName;
+      if (locationImageMap[name]) return locationImageMap[name];
+      const lower = name.toLowerCase();
+      for (const [key, val] of Object.entries(locationImageMap)) {
+        if (lower === key.toLowerCase()) return val;
+      }
+      return locationImageMap.DOKK1;
+    }
+
+    return locationImageMap.DOKK1;
+  };
+
+  // Removed per-location slug helper; using generic CSS to fit long titles.
 
   // Simple static slider content: title, sport label, image, and mock active count
   const slides = useMemo(
@@ -109,7 +159,7 @@ export default function TestingMAPSTUFFPage() {
         },
         window.location.origin
       );
-    } catch (e) {
+    } catch {
       // no-op
     }
   }, []);
@@ -193,6 +243,26 @@ export default function TestingMAPSTUFFPage() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  // Fetch hotspots once on mount
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const hotspotsSnap = await getDocs(collection(db, "hotspots"));
+        const hotspotsList = hotspotsSnap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() || {}),
+        }));
+        if (!cancelled) setHotspots(hotspotsList);
+      } catch (err) {
+        console.error("Failed to load hotspots", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Ingen tap-to-reveal adfærd; reveal handle er permanent tilgængelig
   // når panelet er fuldt skjult.
 
@@ -249,7 +319,7 @@ export default function TestingMAPSTUFFPage() {
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [slides.length]);
 
   // LIVE UPDATES: Subscribe to Firestore 'posts' collection in realtime
   // - onSnapshot attaches a listener that fires immediately with the current
@@ -275,12 +345,52 @@ export default function TestingMAPSTUFFPage() {
       },
       (err) => {
         console.error("Firestore onSnapshot(posts) failed", err);
-        setPostsError("Kunne ikke hente opslag");
         setLoadingPosts(false);
       }
     );
     return () => unsubscribe();
   }, []);
+
+  // Filter hotspots by sport and count posts per hotspot
+  useEffect(() => {
+    // Count posts per hotspot for the selected sport
+    const postCountByHotspot = {};
+    const relevantPosts = selectedSport
+      ? posts.filter((post) => post.sport === selectedSport)
+      : posts;
+
+    relevantPosts.forEach((post) => {
+      if (post.hotspotId) {
+        postCountByHotspot[post.hotspotId] =
+          (postCountByHotspot[post.hotspotId] || 0) + 1;
+      }
+    });
+
+    // Filter hotspots by sport if selected
+    let filtered = hotspots;
+    if (selectedSport) {
+      filtered = hotspots.filter((hotspot) => {
+        const sportsgren = hotspot.sportsgren || hotspot.sports || [];
+        return Array.isArray(sportsgren) && sportsgren.includes(selectedSport);
+      });
+    }
+
+    // Add post count to each hotspot
+    const hotspotsWithCount = filtered.map((hotspot) => ({
+      ...hotspot,
+      postCount: postCountByHotspot[hotspot.id] || 0,
+    }));
+
+    // Sort by post count descending, then by name
+    hotspotsWithCount.sort((a, b) => {
+      if (b.postCount !== a.postCount) {
+        return b.postCount - a.postCount;
+      }
+      return (a.name || a.id || "").localeCompare(b.name || b.id || "");
+    });
+
+    setFilteredHotspots(hotspotsWithCount);
+  }, [hotspots, posts, selectedSport]);
 
   // Afled filtrerede posts efter sport og hotspot
   const filteredPosts = useMemo(() => {
@@ -602,24 +712,90 @@ export default function TestingMAPSTUFFPage() {
         </div>
 
         <div className="tm-content">
-          {postsError && <div className="tm-error">{postsError}</div>}
-          {loadingPosts && posts.length === 0 ? (
+          {loadingPosts && hotspots.length === 0 ? (
             <div className="tm-muted">Indlæser...</div>
-          ) : filteredPosts.length === 0 ? (
+          ) : filteredHotspots.length === 0 ? (
             <div className="tm-muted">
-              Ingen opslag for den valgte sportsgren.
+              Ingen lokationer for den valgte sportsgren.
             </div>
           ) : (
-            <div className="tm-post-list">
-              {filteredPosts.map((post) => (
-                <article key={post.id} className="tm-post-card">
-                  <h2 className="tm-post-title">{post.title || "Untitled"}</h2>
-                  <p className="tm-post-text">
-                    {post.details || "Ingen detaljer"}
-                  </p>
-                  {post.time && (
-                    <div className="tm-post-time">Tidspunkt: {post.time}</div>
-                  )}
+            <div className="tm-location-list">
+              {filteredHotspots.map((hotspot) => (
+                <article
+                  key={hotspot.id}
+                  className="tm-location-card"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Fokusér ${
+                    hotspot.name ||
+                    hotspot.title ||
+                    hotspot.navn ||
+                    hotspot.placeName ||
+                    hotspot.id ||
+                    "lokation"
+                  } på kortet`}
+                  onClick={() => {
+                    focusHotspot(
+                      hotspot.id ||
+                        hotspot.name ||
+                        hotspot.title ||
+                        hotspot.navn ||
+                        hotspot.placeName ||
+                        ""
+                    );
+                    // Slide panel out so the map is fully visible
+                    setSheetOpen(false);
+                    setPanelX(-width());
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      focusHotspot(
+                        hotspot.id ||
+                          hotspot.name ||
+                          hotspot.title ||
+                          hotspot.navn ||
+                          hotspot.placeName ||
+                          ""
+                      );
+                      setSheetOpen(false);
+                      setPanelX(-width());
+                    }
+                  }}
+                >
+                  <div className="tm-location-image-wrapper">
+                    <img
+                      src={getLocationImage(hotspot)}
+                      alt={
+                        hotspot.name ||
+                        hotspot.title ||
+                        hotspot.navn ||
+                        hotspot.placeName ||
+                        hotspot.id ||
+                        "Location"
+                      }
+                      className="tm-location-image"
+                    />
+                    <div className="tm-location-overlay">
+                      <div className="tm-loc-active">
+                        {Array.isArray(hotspot.activeplayers)
+                          ? hotspot.activeplayers.length
+                          : 0}{" "}
+                        aktive
+                      </div>
+                      <h2 className="tm-location-name">
+                        {hotspot.name ||
+                          hotspot.title ||
+                          hotspot.navn ||
+                          hotspot.placeName ||
+                          hotspot.id ||
+                          "Unavngivet"}
+                      </h2>
+                      <div className="tm-loc-posts">
+                        {hotspot.postCount || 0} opslag
+                      </div>
+                    </div>
+                  </div>
                 </article>
               ))}
             </div>

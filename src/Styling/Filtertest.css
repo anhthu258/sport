@@ -1,0 +1,260 @@
+/* Filtertest Page Styling */
+
+.filtertest-root {
+  min-height: 100vh;
+  background: #1e1e1e;
+  color: #f9f9f9;
+  padding-bottom: 40px;
+}
+
+/* Fonts */
+h1,
+h2,
+h3 {
+  font-family: "anton", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+p,
+label,
+button {
+  font-family: "termina", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Header section */
+.filtertest-header {
+  padding: 20px 16px 12px;
+  background: url("/img/white-concret.png") top center/cover no-repeat;
+}
+
+.filtertest-header h1 {
+  margin: 0 0 16px 0;
+  font-size: 32px;
+  color: #1e1e1e;
+  text-align: center;
+}
+
+/* Filter buttons container */
+.filtertest-activities {
+  margin-top: 12px;
+}
+
+.filter {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  padding: 0 12px;
+}
+
+/* Styling for filter buttons */
+.filter__btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: visible;
+  transition: transform 0.2s ease;
+}
+
+.filter__btn:hover {
+  transform: scale(1.05);
+}
+
+/* Button background layer using ::before pseudo-element */
+.filter__btn::before {
+  content: "";
+  position: absolute;
+  width: 220%;
+  height: 220%;
+  border-radius: 50%;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.filter__btn.is-active::before {
+  opacity: 1;
+}
+
+/* Default state - show white icon, hide black icon and background */
+.filter__btn .filter-icon-default {
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.filter__btn .filter-icon-active {
+  display: none;
+  position: relative;
+  z-index: 1;
+}
+
+/* Active state - show black icon with background, hide white icon */
+.filter__btn.is-active .filter-icon-default {
+  display: none;
+}
+
+.filter__btn.is-active .filter-icon-active {
+  display: block;
+}
+
+/* Basketball - Orange background */
+.filter__btn.is-active:nth-child(1)::before {
+  background-image: url("/img/orange-bg.png");
+}
+
+/* Volleyball - Blue background */
+.filter__btn.is-active:nth-child(2)::before {
+  background-image: url("/img/blue-bg.png");
+}
+
+/* Fodbold - White background */
+.filter__btn.is-active:nth-child(3)::before {
+  background-image: url("/img/white-bg.png");
+}
+
+/* Tennis - Green background */
+.filter__btn.is-active:nth-child(4)::before {
+  background-image: url("/img/green-bg.png");
+}
+
+/* Styling for images inside filter buttons */
+.filter__btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.filter__btn span:last-child {
+  display: none; /* Hide the text label */
+}
+
+/* Content section */
+.filtertest-content {
+  padding: 20px 16px;
+}
+
+.filtertest-loading,
+.filtertest-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9ca3af;
+}
+
+/* Location cards */
+.filtertest-location-list {
+  display: grid;
+  gap: 16px;
+}
+
+.location-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #111827;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.location-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.location-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  overflow: hidden;
+}
+
+.location-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: brightness(0.7) contrast(1.1);
+}
+
+/* Overlay with location info */
+.location-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 16px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.85) 0%,
+    rgba(0, 0, 0, 0.6) 50%,
+    transparent 100%
+  );
+}
+
+.location-name {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #ff4500;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 1px;
+}
+
+.location-stats {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.location-active,
+.location-posts {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.active-count,
+.posts-count {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .filtertest-location-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .filtertest-location-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .filtertest-content {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
