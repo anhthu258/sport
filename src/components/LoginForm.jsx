@@ -19,11 +19,11 @@ export default function LoginForm({ onLogin }) {
         e.preventDefault();
         setError('');
         if (!identifier || !password) {
-            setError('Please fill in both fields.');
+            setError('Udfyld begge felter.');
             return;
         }
         if (password.length < MIN_PASSWORD) {
-            setError(`Password must be at least ${MIN_PASSWORD} characters.`);
+            setError(`Password skal mindst være ${MIN_PASSWORD} tegn.`);
             return;
         }
 
@@ -35,13 +35,13 @@ export default function LoginForm({ onLogin }) {
                 const q = query(collection(db, 'profil'), where('username', '==', emailToUse));
                 const snap = await getDocs(q);
                 if (snap.empty) {
-                    setError('No account found for that username.');
+                    setError('Ingen konto fundet med det brugernavn.');
                     return;
                 }
                 // tag første matchende dokument
                 const docData = snap.docs[0].data();
                 if (!docData?.email) {
-                    setError('User record missing email.');
+                    setError("Brugerpost mangler e-mail.");
                     return;
                 }
                 emailToUse = docData.email;
@@ -57,36 +57,45 @@ export default function LoginForm({ onLogin }) {
             navigate('/testing-map');
         } catch (err) {
             console.error(err);
-            const friendly = String(err?.code || err?.message || 'Sign in failed')
-              .replaceAll('-', ' ')
-              .replaceAll('auth/', '');
+            const friendly = String(
+              err?.code || err?.message || "Log ind mislykkedes")
+              .replaceAll("-", " ")
+              .replaceAll("auth/", "");
             setError(friendly);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="form-container">
-            {/* username or email felt */}
-            <aside className="field">
-                <label htmlFor="identifier">Username or Email</label>
-                <input
-                  id="identifier"
-                  type="text"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="username or email"
-                />
-            </aside>
+      <form onSubmit={handleSubmit} className="form-container">
+        {/* username or email felt */}
+        <aside className="field">
+          <label htmlFor="identifier">Brugernavn eller Email</label>
+          <input
+            id="identifier"
+            type="text"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            placeholder="Brugernavn eller Email"
+          />
+        </aside>
 
-            {/* adgangskode felt */}
-            <aside className="field">
-                <label htmlFor="password">Password</label>
-                <input id="password" type="password" minLength={MIN_PASSWORD} value={password} onChange={(e)=>setPassword(e.target.value)} />
-            </aside>
+        {/* adgangskode felt */}
+        <aside className="field">
+          <label htmlFor="password">Kodeord</label>
+          <input
+            id="password"
+            type="password"
+            minLength={MIN_PASSWORD}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </aside>
 
-            {/* fejl besked */}
-            {error && <p className="error">{error}</p>}
-            <button type="submit" className="btn">Log in</button>
-        </form>
+        {/* fejl besked */}
+        {error && <p className="error">{error}</p>}
+        <button type="submit" className="btn">
+          Log in
+        </button>
+      </form>
     );
 }

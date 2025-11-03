@@ -22,19 +22,19 @@ export default function Signup({onSuccess}) {
 
     // simpel validering
     if (!username || !email || !password) {
-      setError('Please fill out all fields.');
+      setError("Udfyld venligst alle felter.");
       return;
     }
 
     // Force max længde for brugernavn
     if (username.length > MAX_USERNAME) {
-      setError(`Username must be ${MAX_USERNAME} characters or less.`);
+      setError(`Brugernavn skal være ${MAX_USERNAME} tegn eller mindre.`);
       return;
     }
 
     // Force minimum længde for password
     if (password.length < MIN_PASSWORD) {
-      setError(`Password must be at least ${MIN_PASSWORD} characters.`);
+      setError(`Adgangskoden skal være mindst ${MIN_PASSWORD} karakterer.`);
       return;
     }
 
@@ -67,7 +67,7 @@ export default function Signup({onSuccess}) {
       setPassword('');
     } catch (err) {
       console.error(err);
-      const raw = err?.code || err?.message || 'Signup failed';
+      const raw = err?.code || err?.message || "Tilmelding mislykkedes";
       const friendly = String(raw).replaceAll('-', ' ').replaceAll('auth/', '');
       setError(friendly);
     }
@@ -80,7 +80,7 @@ export default function Signup({onSuccess}) {
           <label>
             Username
             <input
-              name="username"
+              name="Brugernavn"
               maxLength={MAX_USERNAME}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -112,7 +112,7 @@ export default function Signup({onSuccess}) {
         {error && <p className="error">{error}</p>}
         {/* Vis success besked når man fik lavet sin konto */}
         {success && <p className="success" role="status">{success}</p>}
-        <button type="submit" className="btn">Create account</button>
+        <button type="submit" className="btn">Opret konto</button>
       </form>
     </section>
   );
