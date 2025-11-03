@@ -415,6 +415,11 @@ export default function TestingMAPSTUFFPage() {
 
   // Desktop drag-to-scroll for karussellen (touch swipe virker allerede)
   const onCarDown = (e) => {
+    // For touch, let the browser handle native scroll + inertia + snap
+    if (e.pointerType === "touch") {
+      setSliderInteracting(true);
+      return; // do not capture or preventDefault for touch
+    }
     if (e.pointerType === "mouse" && e.button !== 0) return;
     e.stopPropagation();
     try {
@@ -429,12 +434,16 @@ export default function TestingMAPSTUFFPage() {
     carDrag.current.id = e.pointerId;
     carDrag.current.startX = e.clientX;
     carDrag.current.startScroll = el.scrollLeft;
+    // track last movement for velocity
+    carDrag.current.vx = 0;
+    carDrag.current.lastX = e.clientX;
+    carDrag.current.lastT = performance.now();
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
     } catch {
       /* ignore */
     }
-    // Minimal drag behavior: directly update scrollLeft while dragging
+    // Drag-to-scroll for mouse
     el.style.userSelect = "none";
     el.style.cursor = "grabbing";
   };
@@ -453,20 +462,39 @@ export default function TestingMAPSTUFFPage() {
     const el = slidesRef.current;
     if (!el) return;
     const dx = e.clientX - carDrag.current.startX;
-    // Direct scroll: no snapping or smoothing here
     el.scrollLeft = carDrag.current.startScroll - dx;
+    // velocity estimate for mouse drags
+    const now = performance.now();
+    const dt = now - (carDrag.current.lastT || now);
+    const dxStep = e.clientX - (carDrag.current.lastX || e.clientX);
+    if (dt > 0) carDrag.current.vx = dxStep / dt; // px per ms
+    carDrag.current.lastX = e.clientX;
+    carDrag.current.lastT = now;
   };
   const onCarUp = (e) => {
-    if (!carDrag.current.active) return;
+    // If it was a touch interaction, let native snap finish
+    if (e && e.pointerType === "touch") {
+      setSliderInteracting(false);
+      return;
+    }
+    if (!carDrag.current.active) {
+      setSliderInteracting(false);
+      return;
+    }
     e.stopPropagation();
     const el = slidesRef.current;
     if (el) {
-      // Snap cleanly to the nearest slide for a normal carousel feel
       const w = el.clientWidth || 1;
       const step = w + GAP;
       const pos = el.scrollLeft;
-      let idx = Math.round(pos / step);
       const max = slides.length - 1;
+      // Use velocity to bias toward next/prev on fast flicks
+      const v = carDrag.current.vx || 0; // px/ms; sign indicates direction
+      let idx = Math.round(pos / step);
+      const FLICK_THRESHOLD = 0.5; // px/ms ~ quick drag
+      if (Math.abs(v) > FLICK_THRESHOLD) {
+        idx += v > 0 ? -1 : 1; // v>0 means moving left -> next slide to the right visually
+      }
       if (idx < 0) idx = 0;
       if (idx > max) idx = max;
       el.scrollTo({ left: idx * step, behavior: "smooth" });
@@ -481,7 +509,6 @@ export default function TestingMAPSTUFFPage() {
     if (!carDrag.current.active) return;
     const el = slidesRef.current;
     if (el) {
-      // Also snap on cancel to keep slides aligned nicely
       const w = el.clientWidth || 1;
       const step = w + GAP;
       const pos = el.scrollLeft;
@@ -497,15 +524,40 @@ export default function TestingMAPSTUFFPage() {
     carDrag.current.active = false;
     setSliderInteracting(false);
   };
-  const onCarWheel = (e) => {
+
+  // Wheel/trackpad horizontal scrolling: attach as non-passive to allow preventDefault
+  useEffect(() => {
     const el = slidesRef.current;
     if (!el) return;
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-      e.stopPropagation();
-      e.preventDefault();
-      el.scrollLeft += e.deltaY;
-    }
-  };
+    let snapTimer = 0;
+    const onWheel = (e) => {
+      // Only hijack when the intent is horizontal (or shift+scroll)
+      const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey;
+      if (!horizontal) return; // let page scroll vertically
+      try {
+        e.preventDefault();
+        e.stopPropagation();
+      } catch {}
+      const dx = e.deltaX !== 0 ? e.deltaX : e.deltaY; // fallback for devices that emit deltaY
+      el.scrollLeft += dx;
+      if (snapTimer) clearTimeout(snapTimer);
+      snapTimer = setTimeout(() => {
+        const w = el.clientWidth || 1;
+        const step = w + GAP;
+        const idxMax = slides.length - 1;
+        let idx = Math.round(el.scrollLeft / step);
+        if (idx < 0) idx = 0;
+        if (idx > idxMax) idx = idxMax;
+        el.scrollTo({ left: idx * step, behavior: "smooth" });
+        setActiveSlide(idx);
+      }, 80);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      if (snapTimer) clearTimeout(snapTimer);
+    };
+  }, [GAP, slides.length]);
 
   // Beregn venstre position for reveal tab så den følger panelkanten
   const revealLeft = (() => {
@@ -543,7 +595,6 @@ export default function TestingMAPSTUFFPage() {
             onPointerMove={onCarMove}
             onPointerUp={onCarUp}
             onPointerCancel={onCarCancel}
-            onWheel={onCarWheel}
             onPointerEnter={() => setSliderInteracting(true)}
             onPointerLeave={() => setSliderInteracting(false)}
           >

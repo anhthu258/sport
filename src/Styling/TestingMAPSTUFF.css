@@ -6,13 +6,17 @@
 }
 
 /* Fonts */
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   font-family: "anton", sans-serif;
   font-weight: 400;
   font-style: normal;
 }
 
-p, label, button {
+p,
+label,
+button {
   font-family: "termina", sans-serif;
   font-weight: 400;
   font-style: normal;
@@ -87,14 +91,18 @@ p, label, button {
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-snap-type: none; /* we'll snap manually on release for predictable behavior */
+  /* Use native momentum scrolling + snap for smoother touch behaviour */
+  scroll-snap-type: x mandatory;
   gap: 12px;
   -webkit-overflow-scrolling: touch;
   border-radius: 16px;
   scrollbar-width: none;
   touch-action: pan-x;
-  overscroll-behavior-x: contain;
+  /* contain both axes so vertical page scroll doesn't fight the slider */
+  overscroll-behavior: contain;
   cursor: grab;
+  /* smooth programmatic scrollTo in JS */
+  scroll-behavior: smooth;
 }
 .tm-slides::-webkit-scrollbar {
   display: none;
@@ -108,7 +116,8 @@ p, label, button {
   border-radius: 16px;
   overflow: hidden;
   scroll-snap-align: start;
-  scroll-snap-stop: normal;
+  /* Ensure we always stop on a slide when the user flings the carousel */
+  scroll-snap-stop: always;
   background: #111827;
   display: flex;
   align-items: center;
