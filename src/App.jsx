@@ -13,19 +13,16 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* No automatic redirects so you can navigate directly while testing */}
-        <Route path="/" element={<Hometest />} />
-        <Route path="/login" element={<Login />} />
+        {/*<Route path="/" element={<Hometest />} />*/}
+        <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/opretpost" element={<OpretPost />} />
-        <Route path="/filtertest" element={<Filtertest />} />
-        <Route path="/test" element={<Test />} />
-        <Route path="/testing-map" element={<TestingMAPSTUFFPage />} />
-        {/* Removed alias to avoid duplicate paths */}
-        {/* Optional: simple 404 without redirect */}
+        {/*<Route path="/filtertest" element={<Filtertest />} />*/}
+        {/*<Route path="/test" element={<Test />} />*/}
+        <Route path="/map" element={<TestingMAPSTUFFPage />} />
         <Route
           path="*"
-          element={<div style={{ padding: 16 }}>Not found</div>}
+          element={<TestingMAPSTUFFPage/>}
         />
       </Routes>
     </BrowserRouter>
