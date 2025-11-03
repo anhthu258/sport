@@ -78,7 +78,7 @@ export default function TestingMAPSTUFFPage() {
       DOKK1: "/img/LokationImg/dokk123.png",
       Havnen: "/img/LokationImg/havnen.jpg",
       Navitas: "/img/LokationImg/navitas.jpg",
-      Island: "/img/LokationImg/navitas.jpg",
+      Island: "/img/LokationImg/oen.jpg",
       Frederiksbergsvoemmehal:
         "/img/LokationImg/frederiksbergidraetscenter.jpg",
       Frederiksbergskole: "/img/LokationImg/frederiksbergskole.jpg",
