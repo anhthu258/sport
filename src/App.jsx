@@ -1,7 +1,5 @@
 // App.jsx
 import { BrowserRouter, Routes, Route } from "react-router";
-import Hometest from "./pages/Hometest.jsx";
-
 import Login from "./pages/Login.jsx";
 import OpretPost from "./pages/Opret_post.jsx";
 import Signup from "./pages/Signup.jsx";
@@ -15,8 +13,7 @@ export default function App() {
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/opretpost" element={<OpretPost />} />
-        {/*<Route path="/filtertest" element={<Filtertest />} />*/}
-        {/*<Route path="/test" element={<Test />} />*/}
+
         <Route path="/discover" element={<Discover />} />
         {/* Legacy alias */}
         <Route path="/map" element={<Discover />} />
