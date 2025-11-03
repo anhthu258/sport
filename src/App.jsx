@@ -5,9 +5,7 @@ import Hometest from "./pages/Hometest.jsx";
 import Login from "./pages/Login.jsx";
 import OpretPost from "./pages/Opret_post.jsx";
 import Signup from "./pages/Signup.jsx";
-import Filtertest from "./pages/Filtertest.jsx";
-import Test from "./pages/test.jsx";
-import TestingMAPSTUFFPage from "./pages/Discover.jsx";
+import Discover from "./pages/Discover.jsx";
 
 export default function App() {
   return (
@@ -19,8 +17,10 @@ export default function App() {
         <Route path="/opretpost" element={<OpretPost />} />
         {/*<Route path="/filtertest" element={<Filtertest />} />*/}
         {/*<Route path="/test" element={<Test />} />*/}
-        <Route path="/map" element={<TestingMAPSTUFFPage />} />
-        <Route path="*" element={<TestingMAPSTUFFPage />} />
+        <Route path="/discover" element={<Discover />} />
+        {/* Legacy alias */}
+        <Route path="/map" element={<Discover />} />
+        <Route path="*" element={<Discover />} />
       </Routes>
     </BrowserRouter>
   );
