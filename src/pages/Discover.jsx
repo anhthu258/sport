@@ -25,9 +25,9 @@ Data
 ===============================================================================
 */
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import "../Styling/TestingMAPSTUFF.css";
+import "../Styling/Discover.css";
 import Filter from "../components/Filter.jsx";
-import PostSildeOp from "../components/PostSildeOp";
+import PostSildeOp from "../components/PostSildeOp.jsx";
 import { db } from "../assets/firebase.js";
 import { collection, onSnapshot, getDocs } from "firebase/firestore";
 
