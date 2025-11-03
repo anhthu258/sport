@@ -25,7 +25,7 @@ export default function Filter({ onFilterChange, selectedSport, sports }) {
       setLoading(false);
       return;
     }
-    // Flag til at forhindre state opdateringer hvis komponenten unmounter
+  // Flag til at forhindre state-opdateringer, hvis komponenten bliver fjernet fra siden
     let cancelled = false;
     // Asynkron funktion til at hente sports fra Firebase
     (async () => {
@@ -34,7 +34,7 @@ export default function Filter({ onFilterChange, selectedSport, sports }) {
         const snap = await getDocs(collection(db, "sports"));
         // Konverterer Firebase dokumenter til et array af objekter
         const list = snap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
-        // Opdaterer state hvis komponenten stadig er mounted
+  // Opdaterer state, hvis komponenten stadig vises
         if (!cancelled) setSportsData(list);
       } catch (err) {
         // Logger fejl til konsollen
@@ -44,7 +44,7 @@ export default function Filter({ onFilterChange, selectedSport, sports }) {
         if (!cancelled) setLoading(false);
       }
     })();
-    // Cleanup funktion der kører når komponenten unmounter
+    // Oprydningsfunktion, der kører, når komponenten bliver fjernet fra siden
     return () => {
       cancelled = true;
     };
