@@ -98,8 +98,11 @@ button {
   border-radius: 16px;
   scrollbar-width: none;
   touch-action: pan-x;
-  overscroll-behavior-x: contain;
+  /* contain both axes so vertical page scroll doesn't fight the slider */
+  overscroll-behavior: contain;
   cursor: grab;
+  /* smooth programmatic scrollTo in JS */
+  scroll-behavior: smooth;
 }
 .tm-slides::-webkit-scrollbar {
   display: none;

@@ -524,15 +524,40 @@ export default function TestingMAPSTUFFPage() {
     carDrag.current.active = false;
     setSliderInteracting(false);
   };
-  const onCarWheel = (e) => {
+
+  // Wheel/trackpad horizontal scrolling: attach as non-passive to allow preventDefault
+  useEffect(() => {
     const el = slidesRef.current;
     if (!el) return;
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-      e.stopPropagation();
-      e.preventDefault();
-      el.scrollLeft += e.deltaY;
-    }
-  };
+    let snapTimer = 0;
+    const onWheel = (e) => {
+      // Only hijack when the intent is horizontal (or shift+scroll)
+      const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey;
+      if (!horizontal) return; // let page scroll vertically
+      try {
+        e.preventDefault();
+        e.stopPropagation();
+      } catch {}
+      const dx = e.deltaX !== 0 ? e.deltaX : e.deltaY; // fallback for devices that emit deltaY
+      el.scrollLeft += dx;
+      if (snapTimer) clearTimeout(snapTimer);
+      snapTimer = setTimeout(() => {
+        const w = el.clientWidth || 1;
+        const step = w + GAP;
+        const idxMax = slides.length - 1;
+        let idx = Math.round(el.scrollLeft / step);
+        if (idx < 0) idx = 0;
+        if (idx > idxMax) idx = idxMax;
+        el.scrollTo({ left: idx * step, behavior: "smooth" });
+        setActiveSlide(idx);
+      }, 80);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      if (snapTimer) clearTimeout(snapTimer);
+    };
+  }, [GAP, slides.length]);
 
   // Beregn venstre position for reveal tab så den følger panelkanten
   const revealLeft = (() => {
@@ -570,7 +595,6 @@ export default function TestingMAPSTUFFPage() {
             onPointerMove={onCarMove}
             onPointerUp={onCarUp}
             onPointerCancel={onCarCancel}
-            onWheel={onCarWheel}
             onPointerEnter={() => setSliderInteracting(true)}
             onPointerLeave={() => setSliderInteracting(false)}
           >
