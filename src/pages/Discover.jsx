@@ -914,11 +914,11 @@ export default function TestingMAPSTUFFPage() {
       )}
 
       {/* Post slide-up sheet overlay: kun synlig når panel er fuldt skjult og en pin klikkes */}
-      <PostSildeOp
+      <PostSlideOp
         open={isHidden() && sheetOpen}
         onClose={() => {
           console.log(
-            "PostSildeOp onClose called - setting sheetOpen to false"
+            "PostSlideOp onClose called - setting sheetOpen to false"
           );
           setSheetOpen(false);
         }}

@@ -49,7 +49,7 @@ import "../pages/Opret_post.jsx";
 // ========================================
 // KOMPONENT DEFINITION - Hovedfunktionen
 // ========================================
-export default function PostSildeOp({
+export default function PostSlideOp({
   open = false, // Om bottom sheet er åben (true/false)
   onClose, // Funktion der kaldes når sheet lukkes
   initialHeight = 180, // Start højde i pixels - collapsed state
@@ -237,7 +237,7 @@ export default function PostSildeOp({
   }, [open, getMaxHeight, initialHeight]);
 
   /**
-   * Sæt height til initialHeight når PostSildeOp åbnes
+   * Sæt height til initialHeight når PostSlideOp åbnes
    * Dette sikrer at der er plads til at trække den ned
    */
   useEffect(() => {
@@ -302,7 +302,7 @@ export default function PostSildeOp({
    * 6. Rydder op når komponenten unmountes
    *
    * Real-time betyder: Når en bruger opretter et nyt post i Opret_post komponenten,
-   * så dukker det automatisk op i PostSildeOp uden at man skal refreshe siden!
+   * så dukker det automatisk op i PostSlideOp uden at man skal refreshe siden!
    */
   useEffect(() => {
     // Hvis der er givet eksterne posts, spring Firestore listener over
@@ -520,7 +520,7 @@ export default function PostSildeOp({
       closeThreshold
     );
     if (current < closeThreshold) {
-      console.log("Closing PostSildeOp - height below threshold");
+      console.log("Closing PostSlideOp - height below threshold");
       onClose();
       return;
     } else if (current < (collapsedHeight + peekHeight) / 2) {
