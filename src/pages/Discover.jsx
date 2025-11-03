@@ -27,6 +27,9 @@ import { db } from "../assets/firebase.js";
 import { collection, onSnapshot, getDocs } from "firebase/firestore";
 
 export default function TestingMAPSTUFFPage() {
+  /* ========================================
+    REFS & KONSTANTER
+    ======================================== */
   // --- Refs til DOM-elementer der måles eller styres ---
   const containerRef = useRef(null);
   const frameRef = useRef(null);
@@ -37,6 +40,9 @@ export default function TestingMAPSTUFFPage() {
   const HANDLE_WIDTH = 40; // skal svare til CSS .tm-reveal-handle width
   const HANDLE_MARGIN = 12;
   const HANDLE_BUFFER = 8; // ekstra px under slides før drag-gutten starter
+  /* ========================================
+    UI / GESTION
+    ======================================== */
   // --- UI / gestions-tilstand ---
   const [panelX, setPanelX] = useState(0); // panel translateX in px
   const [dragging, setDragging] = useState(false); // true while dragging panel
@@ -61,6 +67,9 @@ export default function TestingMAPSTUFFPage() {
   });
   const [sliderInteracting, setSliderInteracting] = useState(false);
 
+  /* ========================================
+    BILLEDER / HJÆLPERE
+    ======================================== */
   // --- Billedhjælper ---
   // Returnerer korrekt billed-URL for en lokation. Modtager enten et
   // hotspot-objekt eller et navn (string).
@@ -109,6 +118,9 @@ export default function TestingMAPSTUFFPage() {
     return locationImageMap.DOKK1;
   };
 
+  /* ========================================
+    KARUSSEL (STATISK)
+    ======================================== */
   // --- Statisk karusselindhold ---
   // Simpelt sæt slides til preview / navigation (titel, sport, billede, meta).
 
@@ -143,6 +155,9 @@ export default function TestingMAPSTUFFPage() {
     []
   );
 
+  /* ========================================
+    IFRAME - KOMMUNIKATION
+    ======================================== */
   // --- Kommunikation med iframe ---
   // Sender et postMessage til iframe for at få kortet til at fokusere en
   // hotspot (søgestreng kan være id eller titel).
@@ -163,6 +178,9 @@ export default function TestingMAPSTUFFPage() {
     }
   }, []);
 
+  /* ========================================
+    GEOMETRI & LAYOUT
+    ======================================== */
   // --- Geometri-helpers ---
   const width = useCallback(
     () => containerRef.current?.clientWidth || window.innerWidth,
@@ -179,6 +197,9 @@ export default function TestingMAPSTUFFPage() {
   // Note: `PostSildeOp` åbnes kun ved klik på kort-pins, ikke automatisk når
   // panelet er skjult.
 
+  /* ========================================
+    DRAG / PANEL-HÅNDTERING
+    ======================================== */
   // --- Drag/håndtag events ---
   // Globale lyttere sikrer at drag fortsætter selvom pegeren forlader handlet
   const attachWindowDrag = () => {
