@@ -33,7 +33,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // Firebase imports - til at hente data fra database
-import { db } from "../assets/firebase"; // Firebase config (firestore)
+import { db } from "../assets/firebase.js"; // Firebase config (firestore)
 import {
   collection, // Hent en samling af dokumenter
   onSnapshot, // Lyt efter ændringer i real-time
@@ -43,7 +43,7 @@ import {
 } from "firebase/firestore"; // Firestore operations
 
 // CSS styling for komponenten
-import "../Styling/PostSildeOp.css";
+import "../Styling/PostSlideOp.css";
 import "../pages/Opret_post.jsx";
 
 // ========================================

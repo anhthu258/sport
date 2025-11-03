@@ -22,7 +22,7 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import "../Styling/Discover.css";
 import Filter from "../components/Filter.jsx";
-import PostSildeOp from "../components/PostSildeOp.jsx";
+import PostSlideOp from "../components/PostSlideOp.jsx";
 import { db } from "../assets/firebase.js";
 import { collection, onSnapshot, getDocs } from "firebase/firestore";
 
