@@ -1,48 +1,49 @@
 /*
-===============================================================================
-TestingMAPSTUFFPage – Map iframe + Discover overlay
--------------------------------------------------------------------------------
-Layers
-- Map layer: an iframe pointing to /MapAnker.html (Mapbox GL + Firestore).
-- UI layer: a Discover-style panel rendered in React above the iframe.
+  Discover-side med kort-iframe og overlay-panel.
 
-Panel behavior
-- panelX drives the panel's X translation via CSS var --panel-x (px).
-  0 => panel fully open, -width() => fully hidden.
-- Right-side invisible gutter (.tm-handle) starts below the carousel; drag it
-  horizontally to hide/reveal the panel.
-- When hidden (panelX < 0), a left-side tab (.tm-reveal-handle) appears over
-  the map and follows the panel's right edge; you can drag it to bring the
-  panel back.
+  Kortlag: iframe der loader /MapAnker.html (Mapbox GL + Firestore).
+  UI-lag: React-panel ovenpå iframe med karussel, filter og lokationsliste.
 
-Carousel behavior
-- Horizontal scroll with snap points; desktop drag converts pointer movement
-  into scroll. Dots/buttons jump to specific slides.
+  Kortfremvisning:
+  - `panelX` styrer panelets translateX via CSS-var `--panel-x` (0 = åben,
+    -width = skjult).
+  - Højre, usynlig "gutter" (.tm-handle) bruges til at trække panelet.
+  - Når panelet er skjult vises en venstre "reveal"-tab (.tm-reveal-handle)
+    der kan trækkes for at åbne panelet.
 
-Data
-- Posts are fetched once from Firestore (db -> posts collection). The list
-  can be filtered by sport using the Filter component.
-===============================================================================
+  Karussel:
+  - Horisontal scroll med snap; desktop-musen kan trække for at scrolle.
+  - Dots/knapper kan hoppe til et bestemt slide.
+
+  Data:
+  - `hotspots` hentes en gang (getDocs).
+  - `posts` abonneres live via `onSnapshot`.
 */
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import "../Styling/Discover.css";
 import Filter from "../components/Filter.jsx";
-import PostSildeOp from "../components/PostSildeOp.jsx";
+import PostSlideOp from "../components/PostSlideOp.jsx";
 import { db } from "../assets/firebase.js";
 import { collection, onSnapshot, getDocs } from "firebase/firestore";
 
 export default function TestingMAPSTUFFPage() {
-  // --- Refs to DOM elements we measure or control ---
+  /* ========================================
+    REFS & KONSTANTER
+    ======================================== */
+  // --- Refs til DOM-elementer der måles eller styres ---
   const containerRef = useRef(null);
   const frameRef = useRef(null);
   const panelRef = useRef(null);
   const carouselRef = useRef(null);
   const slidesRef = useRef(null);
-  const GAP = 12; // keep in sync with CSS gap for .tm-slides
-  const HANDLE_WIDTH = 40; // keep in sync with CSS .tm-reveal-handle width
+  const GAP = 12; // skal svare til CSS gap for .tm-slides
+  const HANDLE_WIDTH = 40; // skal svare til CSS .tm-reveal-handle width
   const HANDLE_MARGIN = 12;
-  const HANDLE_BUFFER = 8; // extra pixels below slides before the drag gutter starts
-  // --- UI/gesture state ---
+  const HANDLE_BUFFER = 8; // ekstra px under slides før drag-gutten starter
+  /* ========================================
+    UI / GESTION
+    ======================================== */
+  // --- UI / gestions-tilstand ---
   const [panelX, setPanelX] = useState(0); // panel translateX in px
   const [dragging, setDragging] = useState(false); // true while dragging panel
   const [activeSlide, setActiveSlide] = useState(0); // current carousel index
@@ -66,14 +67,18 @@ export default function TestingMAPSTUFFPage() {
   });
   const [sliderInteracting, setSliderInteracting] = useState(false);
 
-  // Helper function til at få det rigtige billede for hver lokation.
-  // Accepterer enten et helt hotspot-objekt eller et navn (string).
+  /* ========================================
+    BILLEDER / HJÆLPERE
+    ======================================== */
+  // --- Billedhjælper ---
+  // Returnerer korrekt billed-URL for en lokation. Modtager enten et
+  // hotspot-objekt eller et navn (string).
   const getLocationImage = (hotspotOrName) => {
     const locationImageMap = {
       DOKK1: "/img/LokationImg/dokk123.png",
       Havnen: "/img/LokationImg/havnen.jpg",
       Navitas: "/img/LokationImg/navitas.jpg",
-      Island: "/img/LokationImg/navitas.jpg",
+      Island: "/img/LokationImg/oen.jpg",
       Frederiksbergsvoemmehal:
         "/img/LokationImg/frederiksbergidraetscenter.jpg",
       Frederiksbergskole: "/img/LokationImg/frederiksbergskole.jpg",
@@ -113,7 +118,11 @@ export default function TestingMAPSTUFFPage() {
     return locationImageMap.DOKK1;
   };
 
-  // Removed per-location slug helper; using generic CSS to fit long titles.
+  /* ========================================
+    KARUSSEL (STATISK)
+    ======================================== */
+  // --- Statisk karusselindhold ---
+  // Simpelt sæt slides til preview / navigation (titel, sport, billede, meta).
 
   // Simple static slider content: title, sport label, image, and mock active count
   const slides = useMemo(
@@ -146,7 +155,12 @@ export default function TestingMAPSTUFFPage() {
     []
   );
 
-  // Helper: ask the map iframe to focus a hotspot by title/id
+  /* ========================================
+    IFRAME - KOMMUNIKATION
+    ======================================== */
+  // --- Kommunikation med iframe ---
+  // Sender et postMessage til iframe for at få kortet til at fokusere en
+  // hotspot (søgestreng kan være id eller titel).
   const focusHotspot = useCallback((query) => {
     const frame = frameRef.current;
     if (!frame || !frame.contentWindow) return;
@@ -164,23 +178,30 @@ export default function TestingMAPSTUFFPage() {
     }
   }, []);
 
-  // --- Geometry helpers ---
+  /* ========================================
+    GEOMETRI & LAYOUT
+    ======================================== */
+  // --- Geometri-helpers ---
   const width = useCallback(
     () => containerRef.current?.clientWidth || window.innerWidth,
     []
   ); // container width
-  const clamp = useCallback((v) => Math.min(0, Math.max(-width(), v)), [width]); // bound panel in [-W, 0]
-  const minSwipe = 50; // px threshold for open/close decision
+  const clamp = useCallback((v) => Math.min(0, Math.max(-width(), v)), [width]); // begræns panel i [-W, 0]
+  const minSwipe = 50; // px tærskel for at beslutte åben/lukket
 
   const isHidden = useCallback(
     () => Math.abs(panelX) >= width() - 1,
     [panelX, width]
   ); // treat as fully hidden
 
-  // PostSildeOp åbner kun når man klikker på pins, ikke automatisk når panelet er skjult
+  // Note: `PostSildeOp` åbnes kun ved klik på kort-pins, ikke automatisk når
+  // panelet er skjult.
 
-  // --- Drag handle events ---
-  // Attach global listeners so dragging continues even if the pointer leaves the handle
+  /* ========================================
+    DRAG / PANEL-HÅNDTERING
+    ======================================== */
+  // --- Drag/håndtag events ---
+  // Globale lyttere sikrer at drag fortsætter selvom pegeren forlader handlet
   const attachWindowDrag = () => {
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
@@ -193,7 +214,7 @@ export default function TestingMAPSTUFFPage() {
   };
 
   const onDown = (e) => {
-    // Begin a panel drag either from the right gutter or the left reveal tab
+    // Start panel-drag (fra højre gutter eller venstre reveal-tab)
     try {
       e.preventDefault();
     } catch {
@@ -210,14 +231,14 @@ export default function TestingMAPSTUFFPage() {
     attachWindowDrag();
   };
   const onMove = (e) => {
-    // Update panel position while dragging
+    // Opdater panelposition under drag
     if (!dragging) return;
     if (e.pointerType === "mouse" && e.buttons === 0) return;
     const dx = e.clientX - drag.current.startX;
     setPanelX(clamp(drag.current.panelAtStart + dx));
   };
   const onUp = () => {
-    // Settle panel open/closed based on swipe distance or midpoint
+    // Afslut drag: beslutter åben/lukket ud fra swipe-distance eller midtpunkt
     if (!dragging) return;
     const dx = drag.current ? drag.current.panelAtStart - panelX : 0;
     if (-dx < -minSwipe) setPanelX(-width());
@@ -227,11 +248,12 @@ export default function TestingMAPSTUFFPage() {
     detachWindowDrag();
   };
   const onCancel = () => {
+    // Annuler drag
     setDragging(false);
     detachWindowDrag();
   };
 
-  // Measure slides (image container) height so the right drag gutter starts BELOW the images
+  // Mål slides højde så højre drag-gutter starter under billederne
   useEffect(() => {
     const update = () => {
       const h = slidesRef.current?.offsetHeight || 0;
@@ -243,7 +265,7 @@ export default function TestingMAPSTUFFPage() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // Fetch hotspots once on mount
+  // Hent hotspots én gang ved mount (getDocs)
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -263,10 +285,11 @@ export default function TestingMAPSTUFFPage() {
     };
   }, []);
 
-  // Ingen tap-to-reveal adfærd; reveal handle er permanent tilgængelig
-  // når panelet er fuldt skjult.
+  // Ingen "tap-to-reveal" — reveal-handle er altid tilgængelig når panelet
+  // er skjult.
 
-  // Lyt efter hotspot klik fra iframe kort og opdater sheet titel + filtrer posts
+  // Lyt efter beskeder fra iframe (hotspot-klik). Åbner PostSildeOp og sætter
+  // valgt hotspot når kortet sender `hotspotClick`.
   useEffect(() => {
     const onMessage = (e) => {
       try {
@@ -306,7 +329,7 @@ export default function TestingMAPSTUFFPage() {
     return () => window.removeEventListener("message", onMessage);
   }, [isHidden, posts]);
 
-  // Track active slide based on horizontal scroll position
+  // Opdater aktivt slide baseret på horisontal scroll
   useEffect(() => {
     const el = slidesRef.current;
     if (!el) return;
@@ -321,12 +344,9 @@ export default function TestingMAPSTUFFPage() {
     return () => el.removeEventListener("scroll", onScroll);
   }, [slides.length]);
 
-  // LIVE UPDATES: Subscribe to Firestore 'posts' collection in realtime
-  // - onSnapshot attaches a listener that fires immediately with the current
-  //   documents and again on every change (add/update/delete).
-  // - We map the snapshot to a simple array of post objects and set local state.
-  // - The unsubscribe function returned by onSnapshot is called on unmount to
-  //   avoid memory leaks.
+  // Live-opdateringer: abonner på `posts` via onSnapshot. Mapper snapshot til
+  // en liste af post-objekter (konverterer timestamp til Date) og rydder
+  // op på unmount via unsubscribe.
   useEffect(() => {
     setLoadingPosts(true);
     const unsubscribe = onSnapshot(
@@ -351,7 +371,8 @@ export default function TestingMAPSTUFFPage() {
     return () => unsubscribe();
   }, []);
 
-  // Filter hotspots by sport and count posts per hotspot
+  // Filtrer hotspots efter valgt sport og tæl post-antal per hotspot. Sorter
+  // resultater efter antal opslag, så mest aktive kommer først.
   useEffect(() => {
     // Count posts per hotspot for the selected sport
     const postCountByHotspot = {};
@@ -392,7 +413,8 @@ export default function TestingMAPSTUFFPage() {
     setFilteredHotspots(hotspotsWithCount);
   }, [hotspots, posts, selectedSport]);
 
-  // Afled filtrerede posts efter sport og hotspot
+  // Afled listen af posts til `PostSildeOp` ud fra valgt sport og valgt
+  // hotspot.
   const filteredPosts = useMemo(() => {
     let filtered = posts;
 
@@ -413,7 +435,7 @@ export default function TestingMAPSTUFFPage() {
     return filtered;
   }, [posts, selectedSport, selectedHotspotId]);
 
-  // Desktop drag-to-scroll for karussellen (touch swipe virker allerede)
+  // Desktop: træk-for-scroll for karussellen (touch håndteres nativt).
   const onCarDown = (e) => {
     // For touch, let the browser handle native scroll + inertia + snap
     if (e.pointerType === "touch") {
@@ -525,7 +547,8 @@ export default function TestingMAPSTUFFPage() {
     setSliderInteracting(false);
   };
 
-  // Wheel/trackpad horizontal scrolling: attach as non-passive to allow preventDefault
+  // Wheel/trackpad: hijack horisontal scroll (non-passive) for bedre UX. Snap
+  // til nærmeste slide efter inaktivitet.
   useEffect(() => {
     const el = slidesRef.current;
     if (!el) return;
@@ -559,7 +582,8 @@ export default function TestingMAPSTUFFPage() {
     };
   }, [GAP, slides.length]);
 
-  // Beregn venstre position for reveal tab så den følger panelkanten
+  // Beregn venstre position for reveal-tab så den følger panelkanten når
+  // panelet er skjult.
   const revealLeft = (() => {
     const w = width();
     const panelRightEdge = w + panelX; // panel's right edge in viewport px
@@ -890,11 +914,11 @@ export default function TestingMAPSTUFFPage() {
       )}
 
       {/* Post slide-up sheet overlay: kun synlig når panel er fuldt skjult og en pin klikkes */}
-      <PostSildeOp
+      <PostSlideOp
         open={isHidden() && sheetOpen}
         onClose={() => {
           console.log(
-            "PostSildeOp onClose called - setting sheetOpen to false"
+            "PostSlideOp onClose called - setting sheetOpen to false"
           );
           setSheetOpen(false);
         }}

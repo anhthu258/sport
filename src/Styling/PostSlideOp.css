@@ -1,0 +1,608 @@
+/**
+ * ========================================
+ * POSTSILDEOP - GOOGLE MAPS STYLE BOTTOM SHEET
+ * ========================================
+ * 
+ * En avanceret bottom sheet komponent der opfører sig præcis som Google Maps.
+ * Inkluderer drag funktionalitet, snap positioner, og smart scrolling.
+
+
+/* ========================================
+   OVERLAY CONTAINER - Dækker hele skærmen
+   ======================================== */
+.psu-overlay {
+  position: fixed; /* Fast positionering over alt indhold */
+  inset: 0; /* Dækker hele skærmen */
+  display: flex;
+  justify-content: flex-end; /* Aligner til højre */
+  align-items: flex-end; /* Aligner til bunden */
+  background: transparent; /* Gennemsigtig baggrund */
+  z-index: 50;
+  touch-action: pan-y; /* Forhindrer zoom på mobile */
+  -webkit-touch-callout: none; /* Forhindrer callout på iOS */
+}
+
+/* Pass-through mode: let clicks reach the map except on the sheet itself */
+.psu-overlay.psu-pass-through {
+  pointer-events: none;
+}
+.psu-overlay.psu-pass-through .psu-sheet {
+  pointer-events: auto;
+}
+.psu-overlay.psu-pass-through .psu-backdrop {
+  pointer-events: none;
+}
+
+/* I collapsed state skal backdrop stadig kunne klikkes for at lukke */
+.psu-overlay.psu-pass-through .psu-backdrop-collapsed {
+  pointer-events: auto !important;
+}
+
+/* ========================================
+   BACKDROP - Klik for at lukke sheet
+   ======================================== */
+.psu-backdrop {
+  position: absolute;
+  inset: 0; /* Dækker hele overlay */
+  background: transparent; /* Gennemsigtig - kun for klik detection */
+  border: none;
+}
+
+/* Pass-through backdrop: ingen klik, lader events ramme baggrunden (kortet) */
+.psu-backdrop.psu-backdrop-pass {
+  pointer-events: none;
+}
+
+/* ========================================
+   BOTTOM SHEET - Hovedcontainer (draggable)
+   ======================================== */
+.psu-sheet {
+  position: relative;
+  width: 100%;
+  background-color: #303030; /* Fast mørk grå baggrundsfarve */
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  box-shadow: none;
+  transition: height 300ms cubic-bezier(0.4, 0, 0.2, 1); /* Google Maps style animation timing */
+  cursor: grab; /* Vis at hele sheet kan trækkes */
+  touch-action: pan-y; /* Tillad kun vertikal panning på touch */
+  -webkit-touch-callout: none; /* Forhindrer callout på iOS */
+  -webkit-user-select: none; /* Forhindrer tekst markering */
+  user-select: none;
+}
+
+.psu-sheet:active {
+  cursor: grabbing; /* Vis at man trækker */
+}
+
+/* ========================================
+   DRAG STATES - Optimering for drag funktionalitet
+   ======================================== */
+
+/* Fjern transition under drag for præcis finger-følgning */
+.psu-sheet.dragging {
+  transition: none; /* Ingen transition under drag - følger fingeren præcis */
+  overflow: hidden; /* Skjul overflow under drag */
+  /* Fjernet will-change for at forhindre zoom */
+  overscroll-behavior: contain; /* Forhindrer scroll chaining */
+  max-height: 100vh; /* Kan fylde hele skærmen som Google Maps */
+  cursor: grab;
+  touch-action: pan-y; /* Kun tillad vertikal panning, forhindrer zoom */
+  user-select: none; /* Forhindrer tekst markering på hele sheet */
+  -webkit-touch-callout: none; /* Forhindrer callout menu på iOS */
+  -webkit-user-select: none; /* Forhindrer tekst markering på iOS */
+  -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
+  transform: translateZ(0); /* Hardware acceleration uden zoom */
+  -webkit-transform: translateZ(0); /* Safari hardware acceleration */
+  -webkit-backface-visibility: hidden; /* Forhindrer zoom på iOS */
+  backface-visibility: hidden; /* Forhindrer zoom */
+}
+
+/* ========================================
+   HANDLE AREA - Container for drag handle
+   ======================================== */
+.psu-handleArea {
+  width: 100%; /* Fylder hele bredden */
+  padding-top: 10px; /* Mindre padding top */
+  display: flex;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none; /* Forhindrer touch gestures */
+  user-select: none; /* Forhindrer tekst markering */
+  -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
+  -webkit-touch-callout: none; /* Forhindrer callout menu på iOS */
+  min-height: 40px; /* Mindre touch target */
+  background: transparent; /* Fjern debug background for smooth look */
+}
+
+/* ========================================
+   DRAG HANDLE - Visuelt element for drag
+   ======================================== */
+.psu-handle {
+  width: 50px;
+  height: 8px;
+  border-radius: 4px;
+  background: #888;
+  cursor: grab; /* Vis at elementet kan trækkes */
+  transition: background-color 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Hover state for drag handle */
+.psu-handle:hover {
+  background: #888;
+}
+
+/* Active state når man trækker */
+.psu-handle:active {
+  background: #aaa; /* Active state */
+  cursor: grabbing; /* Vis at man trækker */
+}
+
+/* ========================================
+   HEADER SEKTION - Titel og plus knap
+   ======================================== */
+
+/* Header sektion - fjernet da der ikke er nogen header længere */
+
+/* ========================================
+   PLUS KNAP - Orange knap med plus ikon
+   ======================================== */
+
+/* Plus billede - orange cirkel med plus ikon - Mobile only */
+.psu-plus-image {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  cursor: pointer;
+  transition: all 0.2s ease; /* Smooth transitions */
+  margin-top: -45px;
+  margin-right: -45px;
+}
+
+/* Header titel - Mobile størrelse */
+.psu-header-title {
+  font-size: 16px;
+}
+
+/* Header padding - Mobile */
+.psu-header {
+  padding: 0;
+}
+
+.psu-plus-image:hover {
+  transform: scale(1.05);
+}
+
+.psu-plus-image:active {
+  transform: scale(0.95);
+}
+
+/* Indholdsområde - scrollbar hovedindhold */
+.psu-content {
+  padding: 16px 16px 40px 16px; /* Mindre padding i bunden for at tillade scrolling */
+  color: white;
+  overflow-y: auto; /* Kun vertikal scrolling som Google Maps */
+  overflow-x: hidden; /* Ingen horizontal scrolling */
+  max-height: calc(
+    100vh - 150px
+  ); /* Meget stor margin for at garantere at undgå browser bottom navigation */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Native smooth scroll på iOS */
+  overscroll-behavior: contain; /* Forhindrer scroll chaining */
+  -webkit-tap-highlight-color: transparent; /* Fjerner highlight på iOS */
+  pointer-events: auto;
+  transform: translateZ(0); /* Hardware acceleration uden zoom */
+  -webkit-transform: translateZ(0); /* Safari hardware acceleration */
+  margin-top: -20px; /* Mere negativ margin for at hænge sammen med handle */
+  font-family: "termina", sans-serif;
+
+  /* Fjern scrollbar visuelt men behold funktionalitet */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Når sheet er helt oppe, tillad fuld scrolling */
+.psu-sheet.at-top .psu-content {
+  max-height: calc(
+    100vh - 130px
+  ); /* Meget stor margin når helt oppe for at garantere at undgå browser bottom navigation */
+  overscroll-behavior: auto; /* Tillad normal scrolling */
+}
+
+.psu-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.psu-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.psu-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.psu-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Forhindrer skalering af billeder og indhold */
+.psu-content img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain; /* Forhindrer over-skaling */
+  object-position: center;
+  transform: translateZ(0); /* Hardware acceleration */
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Sportsgrene sektion */
+.psu-sports-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding: 0 4px;
+}
+
+.psu-sports-title {
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  margin-left: 10px;
+}
+
+.psu-sports-icons {
+  display: flex;
+  gap: 8px;
+}
+
+.psu-sport-icon {
+  width: 80px;
+  height: 80px;
+  opacity: 0.8;
+  margin: 0 8px;
+}
+
+/* ========================================
+   LOADING OG NO-POSTS STATES
+   ======================================== */
+
+/* Loading state styling */
+.psu-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  color: white;
+}
+
+.psu-loading-text {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: "termina", sans-serif;
+}
+
+/* No posts state styling */
+.psu-no-posts {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  color: white;
+  text-align: center;
+}
+
+.psu-no-posts-text {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: "termina", sans-serif;
+}
+
+.psu-no-posts-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: "termina", sans-serif;
+}
+
+/* ========================================
+   AKTIVITETS KORT - Individuelle sport aktivitets kort
+   ======================================== */
+
+/* Hovedaktivitet kort container */
+.psu-activity-card {
+  background: #2a2a2a;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden; /* Skjul indhold der går udenfor */
+  position: relative; /* For absolut positionering af stats */
+}
+
+/* Aktivt kort (sker lige nu) */
+.psu-activity-card.active {
+  background: #1a1a1a;
+}
+
+.psu-card-header {
+  background: #404040;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.psu-card-header.active {
+  background: #ff6b35;
+}
+
+.psu-active-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffd700;
+  box-shadow: 0 0 6px #ffd700;
+}
+
+/* Kort indholdsområde med padding */
+.psu-card-content {
+  padding: 24px;
+  position: relative;
+}
+
+/* Sport ikon i højre side af hvert kort */
+.psu-post-sport-icon {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  opacity: 0.9;
+  pointer-events: none; /* Ren pynt, ingen klik */
+}
+
+/* Aktivitet titel styling */
+.psu-card-title {
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* Orange titel for fremhævning */
+.psu-card-title.orange {
+  color: #ff6b35;
+}
+
+/* Aktivitet beskrivelse tekst */
+.psu-card-description {
+  color: #cccccc;
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 16px; /* Mellemrum under beskrivelse */
+}
+
+.psu-card-tags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap; /* Tillad wrapping af tags */
+  align-items: flex-start; /* Aligner til toppen */
+}
+
+/* Når der er 3 tags, placer 2 på første linje og 1 under */
+.psu-card-tags:has(.psu-tag:nth-child(3)) {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* Første to tags på samme linje */
+.psu-card-tags:has(.psu-tag:nth-child(3)) .psu-tag:nth-child(1),
+.psu-card-tags:has(.psu-tag:nth-child(3)) .psu-tag:nth-child(2) {
+  display: inline-flex;
+  margin-right: 8px;
+}
+
+/* Tredje tag på ny linje under de andre */
+.psu-card-tags:has(.psu-tag:nth-child(3)) .psu-tag:nth-child(3) {
+  margin-top: 4px;
+}
+
+.psu-tag {
+  background: #555;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.psu-tag.orange {
+  background: #ff6b35;
+  color: white;
+}
+
+.psu-card-user {
+  color: #999;
+  font-size: 12px;
+  margin-top: 30px;
+}
+
+.psu-card-stats {
+  position: absolute;
+  right: 8px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.psu-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #999;
+  font-size: 12px;
+}
+
+.psu-stat-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ========================================
+   STATS UI ELEMENTER - Hvide afrundede firkanter med ikoner
+   ======================================== */
+
+/* Container for de to stats elementer (interesseret/deltager) */
+.psu-stats-container {
+  display: flex;
+  gap: 12px; /* Mellemrum mellem de to firkanter */
+  margin: 0;
+  justify-content: flex-start; /* Juster til venstre side af kortet */
+  flex-direction: row; /* Side om side layout */
+}
+
+/* Individuelt stat element (firkant + tekst) */
+.psu-stat-element {
+  display: flex;
+  flex-direction: column; /* Stak firkant over tekst */
+  align-items: center;
+  gap: 8px; /* Mellemrum mellem firkant og tekst */
+}
+
+/* Hvid afrundet firkant container */
+.psu-stat-square {
+  width: 50px;
+  height: 50px;
+  background: white;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Subtil skygge */
+  position: relative;
+  cursor: pointer;
+}
+
+/* Stjerne firkant styling */
+.psu-stat-square.star {
+  background: white;
+}
+
+/* Flueben firkant styling */
+.psu-stat-square.check {
+  background: white;
+}
+
+/* Aktiv tilstand når klikket - viser ikon */
+.psu-stat-square.active {
+  transform: scale(1.05); /* Lidt større når aktiv */
+  transition: all 0.2s ease; /* Smooth animation */
+}
+
+/* Hover effekt for bedre brugeroplevelse */
+.psu-stat-square:hover {
+  transform: scale(1.02); /* Subtil hover effekt */
+  transition: all 0.2s ease; /* Smooth animation */
+}
+
+/* Ikon størrelse inde i firkanterne */
+.psu-stat-icon-large {
+  width: 28px;
+  height: 28px;
+  object-fit: contain; /* Bevar aspect ratio */
+}
+
+/* Tekst under firkanterne */
+.psu-stat-text {
+  color: #999;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Drag indicator styling - egen sektion */
+.psu-drag-indicator {
+  position: sticky;
+  top: 0;
+  z-index: 11; /* Højere end title-section */
+  background-color: #303030; /* Samme baggrundsfarve */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 8px 0; /* Reduceret padding */
+  cursor: grab;
+  min-height: 24px; /* Reduceret minimum højde */
+  border-top-left-radius: 24px; /* Afrundede hjørner */
+  border-top-right-radius: 24px; /* Afrundede hjørner */
+}
+
+.psu-drag-indicator:active {
+  cursor: grabbing;
+}
+
+.psu-drag-indicator .psu-handle {
+  width: 40px;
+  height: 4px;
+  background-color: #ccc; /* Tilbage til den synlige grå farve */
+  border-radius: 2px;
+}
+
+/* Titel sektion - overskrift og plus knap - FIXED */
+.psu-title-section {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #303030; /* Samme baggrundsfarve som PostSildeOp */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 16px 20px;
+  border-bottom: 1px solid #444;
+  margin-bottom: 16px;
+}
+
+.psu-title {
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  font-family: "Anton", sans-serif;
+}
+
+.psu-plus-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #ff6b35;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.psu-plus-button:hover {
+  background-color: #ff5722;
+  transform: scale(1.1);
+}
+
+.psu-plus-icon {
+  color: white;
+  font-size: 40px;
+  font-weight: bold;
+  line-height: 1;
+}
