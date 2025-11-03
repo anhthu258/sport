@@ -1,8 +1,8 @@
 /*Styling til både sign up og login*/
-*{
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 /* Hele sidens container styling */
@@ -43,11 +43,11 @@
 
 /* ikonen på success notification */
 .success::before {
-  content: '✓';
+  content: "✓";
   display: inline-block;
   margin-right: 8px;
   font-weight: 900;
-  color: rgba(255,255,255,0.95);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 /* responsive: center top on small screens */
@@ -63,20 +63,24 @@
 }
 
 /* Fonts */
-h1, h2, h3{
+h1,
+h2,
+h3 {
   font-family: "anton", sans-serif;
   font-weight: 400;
   font-style: normal;
 }
 
-p, label, button{
+p,
+label,
+button {
   font-family: "termina", sans-serif;
   font-weight: 400;
   font-style: normal;
 }
 
 /* Nederste sektion med den mørkere baggrund */
-.login-container::before{
+.login-container::before {
   content: "";
   position: fixed;
   bottom: -75vh;
@@ -104,7 +108,8 @@ p, label, button{
 /* Hero sektion titel styling */
 .hero h2 {
   color: #1e1e1e; /* Mørk tekstfarve for kontrast */
-  font-size: 32px;
+  font-size: 72px;
+  line-height: 1.05;
   font-weight: 700;
 }
 
@@ -220,8 +225,8 @@ p, label, button{
 .hero-choice-img {
   display: block;
   margin: 16px auto 24px;
-  width: 620px;  
-  max-width: 92%;    
+  width: 780px;
+  max-width: 96%;
   height: auto;
   object-fit: contain;
   border-radius: 12px;
@@ -229,6 +234,9 @@ p, label, button{
 
 /* Responsive tweaks */
 @media (max-width: 420px) {
+  .hero h2 {
+    font-size: 52px;
+  }
   .login-form {
     padding: 18px;
     border-radius: 10px;
@@ -241,16 +249,16 @@ p, label, button{
     padding: 14px;
     font-size: 17px;
   }
-  .auth-panel { 
-    padding: 16px; 
+  .auth-panel {
+    padding: 16px;
   }
-  .btn-inline { 
-    padding: 8px 12px; 
-    font-size: 15px; 
+  .btn-inline {
+    padding: 8px 12px;
+    font-size: 15px;
   }
 
   .hero-choice-img {
-    width: 140px;
+    width: 260px;
     margin-bottom: 12px;
   }
 }
