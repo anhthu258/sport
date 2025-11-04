@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "../Styling/Opret_post.css";
 import { serverTimestamp } from "firebase/firestore";
 import { db, auth } from "../assets/firebase";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { collection, addDoc, getDocs, doc, getDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 
 export default function OpretPost() {

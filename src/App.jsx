@@ -1,13 +1,18 @@
 // App.jsx
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login.jsx";
 import OpretPost from "./pages/OpretPost.jsx";
 import Signup from "./pages/Signup.jsx";
 import Discover from "./pages/Discover.jsx";
 
 export default function App() {
+  // Use "/sport" as base on GitHub Pages project hosting, "/" locally
+  const basename = typeof window !== "undefined" && window.location?.pathname?.startsWith("/sport")
+    ? "/sport"
+    : "/";
+
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <Routes>
         {/*<Route path="/" element={<Hometest />} />*/}
         <Route path="/" element={<Login />} />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router";
+import { useLocation } from "react-router-dom";
 import "../Styling/Login.css";
 import LoginForm from "../components/LoginForm";
 import Signup from "./Signup";
