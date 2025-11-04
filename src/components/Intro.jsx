@@ -39,7 +39,7 @@ export default function Intro({ onComplete, isTransitioning }) {
       <div className="intro-content">
         {/* SpotOn logo billede */}
         <img
-          src="/img/SpotOnLogo.png"
+          src="img/SpotOnLogo.png"
           alt="SpotOn Logo"
           className="intro-logo-img"
         />
