@@ -2,16 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command }) => {
-  const config = {
-    plugins: [react()],
-    base: "/sport/"
-  };
-
-  // Change base path when building for production
-  if (command !== "serve") {
-    config.base = "sport"; // 👈 Replace with your GitHub repository name
-  }
-
-  return config;
-});
+// Ensure correct base path for GitHub Pages (served under /sport/)
+export default defineConfig(({ command }) => ({
+  plugins: [react()],
+  base: command === "serve" ? "/" : "/sport/",
+}));

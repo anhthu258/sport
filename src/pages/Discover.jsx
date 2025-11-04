@@ -79,8 +79,7 @@ export default function TestingMAPSTUFFPage() {
       Havnen: "img/LokationImg/havnen.jpg",
       Navitas: "img/LokationImg/navitas.jpg",
       Island: "img/LokationImg/oen.jpg",
-      Frederiksbergsvoemmehal:
-        "img/LokationImg/frederiksbergidraetscenter.jpg",
+      Frederiksbergsvoemmehal: "img/LokationImg/frederiksbergidraetscenter.jpg",
       Frederiksbergskole: "img/LokationImg/frederiksbergskole.jpg",
     };
 
@@ -599,7 +598,7 @@ export default function TestingMAPSTUFFPage() {
       {/* Kort lag (iframe) */}
       <iframe
         title="MapAnker"
-        src="/MapAnker.html"
+        src={`${import.meta.env.BASE_URL}MapAnker.html`}
         className="tm-map-frame"
         allow="geolocation; fullscreen"
         ref={frameRef}

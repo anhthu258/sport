@@ -374,7 +374,11 @@ function sportKey(sport) {
  * @param {string} sport
  */
 function sportIconUrl(sport) {
-  return `/img/${sportKey(sport)}-black.png`;
+  // Resolve relative to this JS file so it works under GitHub Pages base paths
+  return new URL(
+    `../img/${sportKey(sport)}-black.png`,
+    import.meta.url
+  ).toString();
 }
 
 // ----------------------------------------------------------------------------
