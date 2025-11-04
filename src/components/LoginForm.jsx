@@ -67,8 +67,8 @@ export default function LoginForm({ onLogin }) {
       // notify parent if provided
       onLogin?.(user, null);
 
-      // navigate to TestingMAPSTUFFPage (andre route hvis der er behov stadig under testing)
-      navigate("/testing-map");
+      // navigate to map
+      navigate("/map");
     } catch (err) {
       console.error(err);
       const friendly = String(
