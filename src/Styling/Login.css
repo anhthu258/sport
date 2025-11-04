@@ -50,18 +50,6 @@
   color: rgba(255, 255, 255, 0.95);
 }
 
-/* responsive: center top on small screens */
-@media (max-width: 420px) {
-  .success {
-    left: 50%;
-    right: auto;
-    transform: translate(-50%, -8px) scale(0.98);
-  }
-  .success:not(:empty) {
-    transform: translate(-50%, 0) scale(1);
-  }
-}
-
 /* Fonts */
 h1,
 h2,
@@ -223,13 +211,8 @@ button {
 
 /* hero image for choice view */
 .hero-choice-img {
-  display: block;
-  margin: 16px auto 24px;
-  width: 780px;
-  max-width: 96%;
-  height: auto;
-  object-fit: contain;
-  border-radius: 12px;
+  width: 320px;
+  margin-bottom: 16px;
 }
 
 /* Responsive tweaks */
@@ -260,5 +243,15 @@ button {
   .hero-choice-img {
     width: 260px;
     margin-bottom: 12px;
+  }
+
+  .success {
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -8px) scale(0.98);
+  }
+  
+  .success:not(:empty) {
+    transform: translate(-50%, 0) scale(1);
   }
 }
