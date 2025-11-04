@@ -3,11 +3,17 @@ import { useLocation } from "react-router-dom";
 import "../Styling/Login.css";
 import LoginForm from "../components/LoginForm";
 import Signup from "./Signup";
+import Intro from "../components/Intro";
 
 export default function Login() {
   const location = useLocation();
   const initialView = location?.state?.view ?? "choice";
   const [view, setView] = useState(initialView);
+
+  // State til at styre om intro-skærmen skal vises
+  const [showIntro, setShowIntro] = useState(true);
+
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     if (location?.state?.view) window.history.replaceState({}, "");
@@ -19,65 +25,91 @@ export default function Login() {
     console.log("Login attempt:", username, password);
   };
 
+  const handleIntroComplete = () => {
+    setIsTransitioning(true);
+    // Marker at intro er vist i denne session
+    sessionStorage.setItem("introShown", "true");
+    // Start fade-in af login container samtidigt
+    setTimeout(() => {
+      setShowIntro(false);
+      setIsTransitioning(false);
+    }, 400); // Samme tid som fade-out animation
+  };
+
   return (
-    <section className="login-container">
-      {/* Hero-sektionen: viser overskrift afhængigt af view */}
-      <aside className="hero">
-        {view === "choice" ? (
-          <img
-            src="img/SpotOnLogo.png"
-            alt="Velkommen"
-            className="hero-choice-img"
-          />
-        ) : (
-          <h2>{view === "login" ? "Log ind" : "Opret konto"}</h2>
-        )}
-      </aside>
+    <>
+      {showIntro && (
+        <Intro
+          onComplete={handleIntroComplete}
+          isTransitioning={isTransitioning}
+        />
+      )}
+      <section
+        className={`login-container ${
+          !showIntro || isTransitioning ? "fade-in" : ""
+        }`}
+      >
+        {/* Hero-sektionen: viser overskrift afhængigt af view */}
+        <aside className="hero">
+          {view === "choice" ? (
+            <img
+              src="img/SpotOnLogo.png"
+              alt="Velkommen"
+              className="hero-choice-img"
+            />
+          ) : (
+            <h2>{view === "login" ? "Log ind" : "Opret konto"}</h2>
+          )}
+        </aside>
 
-      {/* Panel der indeholder knapper der leder til formularen */}
-      <div className="auth-panel">
-        {/* Choice-view: to store knapper der skifter view */}
-        {view === "choice" && (
-          <div className="auth-wrap">
-            <aside className="auth-actions">
-              <button className="btn" onClick={() => setView("login")}>
-                Log ind
-              </button>{" "}
-              {/* når knappen klickes, vises valgte "view */}
-              <button className="btn" onClick={() => setView("signup")}>
-                Opret konto
-              </button>
-            </aside>
-          </div>
-        )}
+        {/* Panel der indeholder knapper der leder til formularen */}
+        <div className="auth-panel">
+          {/* Choice-view: to store knapper der skifter view */}
+          {view === "choice" && (
+            <div className="auth-wrap">
+              <aside className="auth-actions">
+                <button className="btn" onClick={() => setView("login")}>
+                  Log ind
+                </button>{" "}
+                {/* når knappen klickes, vises valgte "view */}
+                <button className="btn" onClick={() => setView("signup")}>
+                  Opret konto
+                </button>
+              </aside>
+            </div>
+          )}
 
-        {/* Login-view: viser LoginForm og link til signup */}
-        {view === "login" && (
-          <>
-            {/* LoginForm kalder handleLogin ved submit */}
-            <LoginForm onLogin={handleLogin} />
-            <p className="auth-note">
-              Ikke oprettet?{" "}
-              <button className="btn-inline" onClick={() => setView("signup")}>
-                Opret konto
-              </button>
-            </p>
-          </>
-        )}
+          {/* Login-view: viser LoginForm og link til signup */}
+          {view === "login" && (
+            <>
+              {/* LoginForm kalder handleLogin ved submit */}
+              <LoginForm onLogin={handleLogin} />
+              <p className="auth-note">
+                Ikke oprettet?{" "}
+                <button
+                  className="btn-inline"
+                  onClick={() => setView("signup")}
+                >
+                  Opret konto
+                </button>
+              </p>
+            </>
+          )}
 
-        {/* Signup-view: viser Signup-komponenten og link tilbage til login */}
-        {view === "signup" && (
-          <>
-            <Signup onSuccess={() => setView("choice")} />
-            <p className="auth-note">
-              Allerede bruger?{" "}
-              <button className="btn-inline" onClick={() => setView("login")}>
-                Log ind
-              </button>
-            </p>
-          </>
-        )}
-      </div>
-    </section>
+          {/* Signup-view: viser Signup-komponenten og link tilbage til login */}
+          {view === "signup" && (
+            <>
+              <Signup onSuccess={() => setView("choice")} />
+              <p className="auth-note">
+                Allerede bruger?{" "}
+                <button className="btn-inline" onClick={() => setView("login")}>
+                  Log ind
+                </button>
+              </p>
+            </>
+          )}
+        </div>
+      </section>
+    </>
   );
 }

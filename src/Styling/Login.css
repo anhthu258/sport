@@ -15,6 +15,12 @@
   align-items: center;
   justify-content: flex-start;
   padding: 0 20px;
+  opacity: 0;
+  transition: opacity 0.4s ease-in;
+}
+
+.login-container.fade-in {
+  opacity: 1;
 }
 
 /* success notification på signup */
