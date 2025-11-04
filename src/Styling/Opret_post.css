@@ -210,23 +210,6 @@
   color: #a3e635; /* Grøn farve for positive beskeder */
 }
 
-/* ========================================
-   RESPONSIVE DESIGN
-   ======================================== */
-
-/* Mobil optimering for små skærme */
-@media (max-width: 420px) {
-  /* Mindre titel på mobil */
-  .opret-hero h1 {
-    font-size: 34px;
-  }
-
-  /* Stack felter lodret på mobil i stedet for side-ved-side */
-  .form-row {
-    flex-direction: column; /* Lodret layout */
-  }
-}
-
 /* ======================================
 *   Tilbagepil
 =========================================*/

@@ -97,9 +97,8 @@ export default function OpretPost() {
   }
 
   // Håndterer når brugeren indsender formularen
-  // Dette er hovedfunktionen der gemmer det nye opslag i Firestore
   /* ==========================================
-  * Handle submit funktionen :)
+  * Handle submit funktionen :) Dette er hovedfunktionen der gemmer det nye opslag i Firestore
   * ===========================================*/ 
   async function handleSubmit(e) {
     e.preventDefault(); // Forhindrer at siden reloader (standard form behavior)
