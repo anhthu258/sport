@@ -25,7 +25,7 @@ export default function Login() {
       <aside className="hero">
         {view === "choice" ? (
           <img
-            src="/img/SpotOnLogo.png"
+            src="img/SpotOnLogo.png"
             alt="Velkommen"
             className="hero-choice-img"
           />
