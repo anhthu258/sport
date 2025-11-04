@@ -681,19 +681,19 @@ export default function PostSlideOp({
 
                 // Mapping af normaliserede sportsgrene til ikoner
                 const sportIcons = {
-                  basketball: "img/basketball-white.png",
-                  basket: "img/basketball-white.png", // synonym
-                  fodbold: "img/fodbold-white.png",
-                  tennis: "img/tennis-white.png",
-                  volleyball: "img/volley-white.png",
-                  volley: "img/volley-white.png", // synonym
-                  badminton: "img/badminton-white.png",
-                  padel: "img/padel-white.png",
-                  squash: "img/squash-white.png",
-                  håndbold: "img/handbold-white.png",
-                  handbold: "img/handbold-white.png", // uden æ/ø/å
-                  bordtennis: "img/bordtennis-white.png",
-                  fitness: "img/fitness-white.png",
+                  basketball: "./img/basketball-white.png",
+                  basket: "./img/basketball-white.png", // synonym
+                  fodbold: "./img/fodbold-white.png",
+                  tennis: "./img/tennis-white.png",
+                  volleyball: "./img/volley-white.png",
+                  volley: "./img/volley-white.png", // synonym
+                  badminton: "./img/badminton-white.png",
+                  padel: "./img/padel-white.png",
+                  squash: "./img/squash-white.png",
+                  håndbold: "./img/handbold-white.png",
+                  handbold: "./img/handbold-white.png", // uden æ/ø/å
+                  bordtennis: "./img/bordtennis-white.png",
+                  fitness: "./img/fitness-white.png",
                 };
 
                 // Visningsnavn (capitalize først bogstav)
@@ -705,12 +705,12 @@ export default function PostSlideOp({
                   return (
                     <>
                       <img
-                        src="/img/basketball-white.png"
+                        src="./img/basketball-white.png"
                         alt="Basketball"
                         className="psu-sport-icon"
                       />
                       <img
-                        src="/img/fodbold-white.png"
+                        src="./img/fodbold-white.png"
                         alt="Fodbold"
                         className="psu-sport-icon"
                       />
@@ -722,7 +722,7 @@ export default function PostSlideOp({
                 return uniqueSports.map((sport, index) => (
                   <img
                     key={index}
-                    src={sportIcons[sport] || "img/sport-default-white.png"}
+                    src={sportIcons[sport] || "./img/sport-default-white.png"}
                     alt={displayName(sport)}
                     className="psu-sport-icon"
                     title={displayName(sport)}
@@ -809,10 +809,10 @@ export default function PostSlideOp({
                         const normalize = (s) =>
                           (s || "").toString().trim().toLowerCase();
                         const postSportIcons = {
-                          basketball: "img/postbasket.png",
-                          fodbold: "img/postfodbold.png",
-                          tennis: "img/posttennis_.png",
-                          volleyball: "img/volley-white.png",
+                          basketball: "./img/postbasket.png",
+                          fodbold: "./img/postfodbold.png",
+                          tennis: "./img/posttennis_.png",
+                          volleyball: "./img/volley-white.png",
                         };
                         const sportForIconKey = normalize(post.sport);
                         const iconSrc = postSportIcons[sportForIconKey];
@@ -856,7 +856,7 @@ export default function PostSlideOp({
                             >
                               {interestedStates[post.id] && (
                                 <img
-                                  src="img/star-orange.png"
+                                  src="./img/star-orange.png"
                                   alt="Star"
                                   className="psu-stat-icon-large"
                                 />
@@ -878,7 +878,7 @@ export default function PostSlideOp({
                             >
                               {participatingStates[post.id] && (
                                 <img
-                                  src="img/check-orange.png"
+                                  src="./img/check-orange.png"
                                   alt="Check"
                                   className="psu-stat-icon-large"
                                 />

@@ -17,7 +17,11 @@ export default function Default() {
       }}
     >
       <aside className="hero">
-        <img src="/img/SpotOnLogo.png" alt="SpotOn" className="hero-choice-img" />
+        <img
+          src="./img/SpotOnLogo.png"
+          alt="SpotOn"
+          className="hero-choice-img"
+        />
       </aside>
     </section>
   );
