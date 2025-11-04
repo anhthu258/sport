@@ -1,6 +1,6 @@
 // Opret Post komponent - formular til at oprette nye sportsopslag
 import { useEffect, useState } from "react";
-import "../styling/Opret_post.css";
+import "../Styling/Opret_post.css";
 import { serverTimestamp } from "firebase/firestore";
 import { db, auth } from "../assets/firebase";
 import { useNavigate } from "react-router";
