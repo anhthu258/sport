@@ -634,7 +634,7 @@ export default function PostSlideOp({
               className="psu-plus-button"
               onClick={() => {
                 // Naviger til opret post side
-                window.location.href = "/opretpost";
+                window.location.href = "./opretpost";
               }}
               aria-label="Tilføj post"
             >
