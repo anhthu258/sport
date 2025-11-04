@@ -143,27 +143,60 @@ button {
 .btn {
   appearance: none; /* Fjerner standard knap styling */
   border: none;
-  background: #ff512f;
+  background: linear-gradient(135deg, #ff512f 0%, #ff6b47 100%);
   color: #1e1e1e;
-  padding: 10px 25px; /* Plads omkring tekst */
-  font-weight: 709;
+  padding: 10px 20px; /* Symmetrisk padding for centreret tekst */
+  font-weight: 700;
   font-size: 16px;
   position: relative;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 2;
+  border-radius: 0;
+  box-shadow: 0 4px 14px rgba(255, 81, 47, 0.3), 
+              0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  margin-top: 24px;
+  letter-spacing: 0.5px;
+  text-align: center;
 }
 
-/* Orange firkant bag knappen - skal ligge under knappen */
+/* Hover effekt */
+.btn:hover {
+  background: linear-gradient(135deg, #ff6b47 0%, #ff7a5c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 81, 47, 0.4), 
+              0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Active/press effekt */
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(255, 81, 47, 0.3), 
+              0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* White background square - forbedret offset effekt */
 .btn::before {
   content: "";
   position: absolute;
+  top: -8px;
+  left: -8px;
+  right: 8px;
+  bottom: 8px;
+  background: #f9f9f9;
+  z-index: -1;
+  border-radius: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.9;
+}
+
+/* Hover effekt på white square */
+.btn:hover::before {
   top: -6px;
   left: -6px;
   right: 6px;
   bottom: 6px;
-  background: #f9f9f9;
-  z-index: -1;
 }
 
 /* Error besked styling */
@@ -229,8 +262,9 @@ button {
     padding: 12px;
   }
   .btn {
-    padding: 14px;
-    font-size: 17px;
+    padding: 16px 24px;
+    font-size: 18px;
+    width: 100%;
   }
   .auth-panel {
     padding: 16px;
