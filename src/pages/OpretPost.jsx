@@ -147,7 +147,7 @@ export default function OpretPost() {
     });
 
     //Redirect
-    navigate("/testing-map")
+    navigate("/map")
 
     // Tilføj til hotspot
 const hotspotRef = doc(db, "hotspots", location);
