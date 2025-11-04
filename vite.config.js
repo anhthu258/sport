@@ -10,7 +10,7 @@ export default defineConfig(({ command }) => {
 
   // Change base path when building for production
   if (command !== "serve") {
-    config.base = "/YOUR-REPO-NAME/"; // 👈 Replace with your GitHub repository name
+    config.base = "sport"; // 👈 Replace with your GitHub repository name
   }
 
   return config;
