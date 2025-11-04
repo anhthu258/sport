@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react-swc";
 export default defineConfig(({ command }) => {
   const config = {
     plugins: [react()],
-    base: "/"
+    base: "/sport/"
   };
 
   // Change base path when building for production
