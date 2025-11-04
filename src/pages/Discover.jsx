@@ -75,13 +75,13 @@ export default function TestingMAPSTUFFPage() {
   // hotspot-objekt eller et navn (string).
   const getLocationImage = (hotspotOrName) => {
     const locationImageMap = {
-      DOKK1: "/img/LokationImg/dokk123.png",
-      Havnen: "/img/LokationImg/havnen.jpg",
-      Navitas: "/img/LokationImg/navitas.jpg",
-      Island: "/img/LokationImg/oen.jpg",
+      DOKK1: "img/LokationImg/dokk123.png",
+      Havnen: "img/LokationImg/havnen.jpg",
+      Navitas: "img/LokationImg/navitas.jpg",
+      Island: "img/LokationImg/oen.jpg",
       Frederiksbergsvoemmehal:
-        "/img/LokationImg/frederiksbergidraetscenter.jpg",
-      Frederiksbergskole: "/img/LokationImg/frederiksbergskole.jpg",
+        "img/LokationImg/frederiksbergidraetscenter.jpg",
+      Frederiksbergskole: "img/LokationImg/frederiksbergskole.jpg",
     };
 
     if (!hotspotOrName) return locationImageMap.DOKK1;
@@ -130,25 +130,25 @@ export default function TestingMAPSTUFFPage() {
       {
         title: "Havnen",
         sport: "Fodbold",
-        img: "/img/LokationImg/havnen.jpg",
+        img: "img/LokationImg/havnen.jpg",
         meta: "1 aktiv",
       },
       {
         title: "Navitas",
         sport: "Tennis",
-        img: "/img/LokationImg/navitas.jpg",
+        img: "img/LokationImg/navitas.jpg",
         meta: "3 aktive",
       },
       {
         title: "Frederiksberg Idrætscenter",
         sport: "Basketball",
-        img: "/img/LokationImg/frederiksbergidraetscenter.jpg",
+        img: "img/LokationImg/frederiksbergidraetscenter.jpg",
         meta: "0 aktive",
       },
       {
         title: "Frederiksberg Skole",
         sport: "Volleyball",
-        img: "/img/LokationImg/frederiksbergskole.jpg",
+        img: "img/LokationImg/frederiksbergskole.jpg",
         meta: "2 aktive",
       },
     ],
@@ -683,12 +683,12 @@ export default function TestingMAPSTUFFPage() {
                   icon: (
                     <>
                       <img
-                        src="/img/basketball-white.png"
+                        src="img/basketball-white.png"
                         alt="Basketball"
                         className="filter-icon-default"
                       />
                       <img
-                        src="/img/basketball-black.png"
+                        src="img/basketball-black.png"
                         alt="Basketball"
                         className="filter-icon-active"
                       />
@@ -701,12 +701,12 @@ export default function TestingMAPSTUFFPage() {
                   icon: (
                     <>
                       <img
-                        src="/img/volley-white.png"
+                        src="img/volley-white.png"
                         alt="Volleyball"
                         className="filter-icon-default"
                       />
                       <img
-                        src="/img/volley-black.png"
+                        src="img/volley-black.png"
                         alt="Volleyball"
                         className="filter-icon-active"
                       />
@@ -719,12 +719,12 @@ export default function TestingMAPSTUFFPage() {
                   icon: (
                     <>
                       <img
-                        src="/img/fodbold-white.png"
+                        src="img/fodbold-white.png"
                         alt="Fodbold"
                         className="filter-icon-default"
                       />
                       <img
-                        src="/img/fodbold-black.png"
+                        src="img/fodbold-black.png"
                         alt="Fodbold"
                         className="filter-icon-active"
                       />
@@ -737,12 +737,12 @@ export default function TestingMAPSTUFFPage() {
                   icon: (
                     <>
                       <img
-                        src="/img/tennis-white.png"
+                        src="img/tennis-white.png"
                         alt="Tennis"
                         className="filter-icon-default"
                       />
                       <img
-                        src="/img/tennis-black.png"
+                        src="img/tennis-black.png"
                         alt="Tennis"
                         className="filter-icon-active"
                       />
