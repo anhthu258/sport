@@ -44,7 +44,7 @@ import {
 
 // CSS styling for komponenten
 import "../Styling/PostSlideOp.css";
-import "../pages/Opret_post.jsx";
+import "../pages/OpretPost.jsx";
 
 // ========================================
 // KOMPONENT DEFINITION - Hovedfunktionen

@@ -1,7 +1,7 @@
 // App.jsx
 import { BrowserRouter, Routes, Route } from "react-router";
 import Login from "./pages/Login.jsx";
-import OpretPost from "./pages/Opret_post.jsx";
+import OpretPost from "./pages/OpretPost.jsx";
 import Signup from "./pages/Signup.jsx";
 import Discover from "./pages/Discover.jsx";
 
