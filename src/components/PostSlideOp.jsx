@@ -687,13 +687,6 @@ export default function PostSlideOp({
                   tennis: "./img/tennis-white.png",
                   volleyball: "./img/volley-white.png",
                   volley: "./img/volley-white.png", // synonym
-                  badminton: "./img/badminton-white.png",
-                  padel: "./img/padel-white.png",
-                  squash: "./img/squash-white.png",
-                  håndbold: "./img/handbold-white.png",
-                  handbold: "./img/handbold-white.png", // uden æ/ø/å
-                  bordtennis: "./img/bordtennis-white.png",
-                  fitness: "./img/fitness-white.png",
                 };
 
                 // Visningsnavn (capitalize først bogstav)
