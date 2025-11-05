@@ -119,7 +119,7 @@ export default function Signup({ onSuccess }) {
         {error && <p className="error">{error}</p>}
         {/* Vis success besked når man fik lavet sin konto */}
         {success && (
-          <p className="succes" role="status">
+          <p className="success" role="status">
             {success}
           </p>
         )}
