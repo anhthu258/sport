@@ -23,6 +23,12 @@
   opacity: 1;
 }
 
+/* Embedded signup inside existing login container should not force full viewport height */
+.login-container.signup-embedded {
+  min-height: auto;
+  padding-top: 0;
+}
+
 /* success notification på signup */
 .success {
   position: fixed;
@@ -159,8 +165,7 @@ button {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 2;
   border-radius: 0;
-  box-shadow: 0 4px 14px rgba(255, 81, 47, 0.3), 
-              0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 14px rgba(255, 81, 47, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 100%;
   margin-top: 24px;
   letter-spacing: 0.5px;
@@ -171,15 +176,13 @@ button {
 .btn:hover {
   background: linear-gradient(135deg, #ff6b47 0%, #ff7a5c 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 81, 47, 0.4), 
-              0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 20px rgba(255, 81, 47, 0.4), 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Active/press effekt */
 .btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(255, 81, 47, 0.3), 
-              0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(255, 81, 47, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* White background square - forbedret offset effekt */
@@ -290,7 +293,7 @@ button {
     right: auto;
     transform: translate(-50%, -8px) scale(0.98);
   }
-  
+
   .success:not(:empty) {
     transform: translate(-50%, 0) scale(1);
   }

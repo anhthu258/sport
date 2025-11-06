@@ -76,7 +76,11 @@ export default function Signup({ onSuccess }) {
   };
 
   return (
-    <section className="login-container">
+    // When rendered inside the Login page we end up nested inside another
+    // `.login-container`. That inner container had opacity:0 by default and
+    // hid the form. Adding `fade-in` ensures visibility; using a distinct
+    // class prevents layout conflicts (min-height 100vh on nested container).
+    <section className="login-container fade-in signup-embedded">
       <form onSubmit={handleSubmit} className="form-container">
         <section className="field">
           <label>
