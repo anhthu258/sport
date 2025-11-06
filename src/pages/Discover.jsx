@@ -134,7 +134,7 @@ export default function TestingMAPSTUFFPage() {
       },
       {
         title: "Navitas",
-        sport: "Tennis",
+        sport: "Basketball",
         img: "img/LokationImg/navitas.jpg",
         meta: "3 aktive",
       },
@@ -146,7 +146,7 @@ export default function TestingMAPSTUFFPage() {
       },
       {
         title: "Frederiksberg Skole",
-        sport: "Volleyball",
+        sport: "Fodbold",
         img: "img/LokationImg/frederiksbergskole.jpg",
         meta: "2 aktive",
       },
